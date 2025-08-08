@@ -1,0 +1,959 @@
+// Sử dụng proto3
+syntax = "proto3";
+
+/***** Optimize *****/
+option java_package         = "com.sunshine.smarthome.server.message.protobuf";
+option java_outer_classname = "CommonBuf";
+
+/***** Messages Models chung   *****/
+// Enum nhóm điều hòa, quạt, rèm cửa, đa năng
+enum GroupRemote {
+  AirConditioner = 0;  // Điều hòa
+  Fan            = 1;  // Quạt
+  Multi          = 2;  // Đa năng
+}
+
+enum RemoteCategory {
+  CategoryAuto    = 0;
+  CategoryAC      = 1;
+  CategoryTV      = 2;
+}
+
+// Enum nhóm thiết bị
+// SWITCH,SWCURTAIN,CURTAIN,IRRF,METTER
+enum GroupDevice {
+  SwitcherGroup          = 0;  // Công tắc, Bình nóng lạnh
+  CurtainSwitcherGroup   = 1;  // Rèm cửa điều khiển qua công tắc
+  CurtainGroup           = 2;  // Rèm cửa điều khiển qua thiết bị wifi
+  IrRfGroup              = 3;  // Bộ thu phát sóng IrRf
+  MeterGroup             = 4;  // Đồng hồ điện
+  MotionGroup            = 5;  // Thiết bị chuyển động
+  HomekitGroup           = 6;  // Homekit
+  ButtonGroup            = 7;  // Nút nhấn
+  ACGroup                = 8;  // Nhóm điều hòa
+  LedDriverGroup         = 9;
+  EnvironmentSensorGroup = 10;
+  TouchPanelGroup        = 11; // Touch Panel
+
+  UnknowGroup = 1000;  // Không xác định
+}
+
+// Enum điều kiện kịch bản
+enum ConditionScene {
+  AutoCondition   = 0;  // Tự động
+  ManualCondition = 1;  // Bằng tay
+}
+
+// Enum trạng thái công tắc
+enum PowerState {
+  Off          = 0;  // Tắt
+  On           = 1;  // Mở
+  DoubleTap    = 2;  // Nháy kép
+  SceneTrigger = 3;  // Trigger ngữ cảnh
+  None         = 4;
+}
+
+// Enum trạng thái điều khiển động cơ rèm
+enum CurtainControlState {
+  CurtainControlUnknown   = 0;
+  CurtainControlClose     = 1;  // Đóng
+  CurtainControlStop      = 2;  // Dừng
+  CurtainControlOpen      = 3;  // Mở
+}
+
+// Enum trạng thái nút nhấn
+enum ButtonState {
+  Nothing     = 0;  // Không làm gì
+  OneClick    = 1;  // Nhấn 1 lần
+  DoubleClick = 2;  // Nhấn 2 lần
+  LongClick   = 3;  // Nhấn giữ
+}
+
+// Enum trạng thái kết nối ConnectionState
+enum ConnectionState {
+  Offline    = 0;  // Offline
+  Online     = 1;  // Online
+  Disconnect = 2;  // Disconnect
+  AddNew     = 3;  // Add new device
+  Delete     = 4;  // Remove device
+}
+
+// Enum Mode
+enum ModeAc {
+  AutoMode = 0;
+  CoolMode = 1;
+  HeatMode = 2;
+  DryMode  = 3;
+  FanMode  = 4;
+}
+
+// Enum Swing
+enum SwingAc {
+  AutoSwing   = 0;
+  LowSwing    = 1;
+  MediumSwing = 2;
+  HighSwing   = 3;
+}
+
+// Enum Fan
+enum FanAc {
+  AutoFan   = 0;
+  LowFan    = 1;
+  MediumFan = 2;
+  HighFan   = 3;
+}
+
+// Enum Type Meter
+enum TypeMeter {
+  ElectricMeter = 0;
+  WaterMeter    = 1;
+}
+
+// Enum for learn IR or RF remote
+enum TypeLearn {
+  IR = 0;
+  RF = 1;
+}
+
+// Enum loại thiết bị
+enum TypeDevice {
+  SwitchLight    = 0;  // Đèn
+  SwitchSwitcher = 1;  // Công tắc
+  SwitchOutlet   = 2;  // Ổ cắm
+}
+
+// Enum trạng thái cảm biến chuyển động
+enum MotionState {
+  MotionNone     = 0;  // Không có chuyển động
+  MotionDetected = 1;  // Có chuyển động
+}
+
+// Enum thiết bị đăng ký cho touch panel
+enum TouchPanelComponentType {
+  TouchPanelComponentUnknown          = 0;
+  TouchPanelComponentSwitcher         = 1;
+  TouchPanelComponentCurtainSwitcher  = 2;
+  TouchPanelComponentCurtain          = 3;
+  TouchPanelComponentAirConditioner   = 4;
+  TouchPanelComponentLedDriver        = 5;
+  TouchPanelComponentScene            = 6;
+}
+
+// Ngày giờ
+message DateTime {
+  uint32 day    = 1;
+  uint32 month  = 2;
+  uint32 year   = 3;
+  uint32 hour   = 4;
+  uint32 minute = 5;
+  uint32 second = 6;
+}
+
+message Project {
+  string id   = 1;
+  string code = 2;
+  string name = 3;
+}
+
+message Building {
+  string id   = 1;
+  string code = 2;
+  string name = 3;
+}
+
+message Floor {
+  string id   = 1;
+  string code = 2;
+  string name = 3;
+}
+
+message Apartment {
+  string id   = 1;
+  string code = 2;
+  string name = 3;
+}
+
+message ImageNetwork {
+  string thumb = 1;
+  string url   = 2;
+}
+
+enum HomekitMode {
+  HomekitNormalMode       = 0;
+  HomekitProvisioningMode = 1;
+}
+
+// Nhóm thiết bị
+message GroupControl {
+  string id          = 1;   // Id nhóm
+  string name        = 2;   // Tên tiếng việt
+  string nameEn      = 3;   // Tên tiếng anh
+  string icon        = 4;   // Tên tiếng anh
+  GroupDevice group  = 5;   // Nhóm
+  Room room          = 6;   // Phòng
+  uint32 count       = 7;   // Số lượng thiết bị trong Nhóm
+  bool favorite      = 8;   // Ưu thích
+  bool showHome      = 9;   // Hiển thị trạng thái trang nhà
+  uint32 autoOff     = 10;  // Số phút tự động tắt
+  Device device      = 11;  // Device ảo DeviceId = GroupControlId để cho đồng bộ với thiết bị thật
+  ControlState state = 12;  // Trạng thái hiện tại của nhóm
+
+  repeated Switcher switchers               = 13;  // Công tắc
+  repeated CurtainSwitcher curtainSwitchers = 14;  //  Rèm cửa
+  repeated Remote remotes                   = 15;  // Điều hòa
+  repeated Curtain curtains                 = 16;  // Động cơ rèm cửa
+}
+
+// Thông tin về thiết bị kết nối wifi
+message Device {
+  string deviceId                 = 1;  // Id của thiết bị kết nối wifi
+  string roomId                   = 2;  // Id của room
+  string deviceToken              = 3;  // DeviceToken
+  string deviceName               = 4;  // Tên thiết bị
+  string brandName                = 5;  // Tên hãng
+  string roomName                 = 6;  // Tên của room
+  string icon                     = 7;
+  string ip                       = 8;   // IP local của thiết bị
+  string mdns                     = 9;   // IP local của thiết bị
+  string model                    = 10;  // Mẫu thiết bị (1 Công tắc, 2 Công tắc, 3 Công tắc...)
+  int32 signal                    = 11;  // Tín hiệu sóng, Lưu trên server?
+  string firmwareVersion          = 12;  // Phiên bản firmware phần mềm
+  string hardwareVersion          = 13;  // Phiên bản hardware phần cứng
+  string hardwareId               = 14;  // HardwareId
+  string accessKey                = 15;  // Access key để đăng nhập websocket server
+  ConnectionState connectionState = 16;  // Online/Offline/Disconnect
+  GroupDevice group               = 17;  // Nhóm thiết bị
+  uint32 updateMode               = 18;  // Chế độ update firmware
+  string gatewayId                = 19;  // gatewayId root
+  uint32 reactivity               = 20;  // Độ nhạy của thiết bị
+  uint32 brightness               = 21;  // Độ sáng của thiết bị
+  uint32 timeDelay                = 22;  // Thời gian chờ để tắt PIR
+  uint32 sceneActiveMap           = 23;  // |0000|0000|0000|0000|0000|0000|0000|0000|,
+                                         // Cho phép chế độ kích hoạt kịch bản được lưu trong 4 bit, từ thấp đến cao với
+                                         // 1: Mode double tap, 2: Mode scene switcher
+                                         // Ví dụ sceneActiveMap = 0x21 tức là nút nhấn số 2 được kích hoạt nút kịch bản và nút số
+                                         // 1 kích hoạt double tap.
+  bool notification               = 24;
+}
+
+// Thông tin thiết bị switcher công tắc
+message Switcher {
+  string id                 = 1;
+  string name               = 2;
+  string nameEn             = 3;  // Tên tiếng anh
+  string icon               = 4;
+  uint32 switcher           = 5;  // 1/2/3/4
+  PowerState powerState     = 6;  // Trạng thái On/Off
+  uint32 keepState          = 7;  // 0: Off, 1: On, 2: Keep giữ trạng thái cũ
+  bool favorite             = 8;  // Ưu thích
+  uint32 order              = 9;
+  Device device             = 10;
+  Room room                 = 11;  // Phòng
+  TypeDevice type           = 12;  // Loại thiết bị
+  bool showHome             = 13;  // Hiển thị trạng thái trang nhà
+  uint32 autoOff            = 14;  // Số phút tự động tắt
+  GroupControl groupControl = 15;  // Nhóm điều khiển
+}
+
+// Thông tin thiết bị switcher công tắc
+message LedItem {
+  string id                 = 1;
+  string name               = 2;
+  string nameEn             = 3;  // Tên tiếng anh
+  string icon               = 4;
+  uint32 index              = 5;  // 1/8/10
+  int32 brightnessPercent   = 6;
+  PowerState powerState     = 7;
+  uint32 keepState          = 8;  // 0: Off, 1: On, 2: Keep giữ trạng thái cũ
+  bool favorite             = 9;  // Ưu thích
+  uint32 order              = 10;
+  Device device             = 11;
+  Room room                 = 12;  // Phòng
+  bool showHome             = 13;  // Hiển thị trạng thái trang nhà
+  uint32 autoOff            = 14;  // Số phút tự động tắt
+  GroupControl groupControl = 15;  // Nhóm điều khiển
+}
+
+message LedDriver {
+  string id                 = 1;
+  string name               = 2;
+  string nameEn             = 3;
+  string icon               = 4;
+  repeated LedItem ledItems = 5;
+  Device device             = 6;
+  Room room                 = 7;
+  PowerState powerState     = 8;
+  int32 brightnessPercent   = 9;
+  GroupControl groupControl = 10;  // Nhóm điều khiển
+}
+
+// Thông tin về thiết bị bắc cầu để root gửi thông tin đến thiết bị đấy
+message BridgeInfo {
+  uint32 targetSwitcher   = 1;
+  string targetHardwareId = 2;
+  uint32 bridgeType       = 3;  // 1: Cùng On/Off, 2: Đảo ngược
+  GroupDevice deviceType  = 4;  // phân loại device
+  bool executed           = 5;  // Xác nhận đã điều khiển offline.
+}
+
+// Thông tin thiết bị rèm cửa
+message CurtainSwitcher {
+  string id                 = 1;
+  string name               = 2;
+  string icon               = 3;
+  bool favorite             = 4;
+  uint32 order              = 5;
+  Device device             = 6;
+  uint32 percentIn          = 7;   // Phần trăm hướng trong
+  uint32 percentOut         = 8;   // Phần trăm hướng ngoài
+  string nameEn             = 9;   // Tên tiếng anh
+  Room room                 = 10;  // Phòng
+  bool showHome             = 11;  // Hiển thị trạng thái trang nhà
+  uint32 autoOff            = 12;  // Số phút tự động tắt
+  GroupControl groupControl = 13;  // Nhóm điều khiển
+}
+
+// Thông tin động cơ rèm cửa
+message Curtain {
+  string id                 = 1;
+  string name               = 2;
+  string icon               = 3;
+  bool favorite             = 4;
+  uint32 order              = 5;
+  Device device             = 6;
+  uint32 percent            = 7;   // Phần trăm hướng trong
+  string nameEn             = 8;   // Tên tiếng anh
+  Room room                 = 9;   // Phòng
+  bool showHome             = 10;  // Hiển thị trạng thái trang nhà
+  GroupControl groupControl = 11;  // Nhóm điều khiển
+}
+
+// Thông tin thiết bị chuyển động
+message Motion {
+  string id             = 1;
+  string name           = 2;
+  string icon           = 3;
+  MotionState state     = 4;
+  bool favorite         = 5;
+  uint32 order          = 6;
+  Device device         = 7;
+  string nameEn         = 8;
+  MotionSensorType type = 9;
+  uint32 battery        = 10;
+  bool notification     = 11;
+}
+
+// Thông tin thiết bị chuyển động
+message Homekit {
+  string id        = 1;
+  string icon      = 2;
+  string name      = 3;
+  string nameEn    = 4;
+  HomekitMode mode = 5;  // Bật|Tắt or On|Off
+  bool favorite    = 6;
+  uint32 order     = 7;
+  Device device    = 8;
+}
+
+// Thông tin thiết bị remote chung
+message Remote {
+  string id                 = 1;
+  string remoteLibraryId    = 2;  // id của thư viện remote
+  string deviceId           = 3;  // Id của thiết bị thu phát của remote
+  string name               = 4;
+  string icon               = 5;
+  bool favorite             = 6;
+  uint32 order              = 7;
+  RemoteLibrary library     = 8;   // Thư viện remote
+  Device device             = 9;   // Thiết bị thu phát của remote
+  AirConditionerState state = 10;  // State của điều hòa
+  string nameEn             = 11;  // Tên tiếng anh
+  string roomId             = 12;
+  string roomName           = 13;
+  bool showHome             = 14;  // Hiển thị trạng thái trang nhà
+}
+
+message Button {
+  string id               = 1;
+  string icon             = 2;
+  string name             = 3;
+  string nameEn           = 4;
+  ButtonState buttonState = 5;
+  bool favorite           = 6;
+  uint32 order            = 7;
+  Device device           = 8;
+  uint32 index            = 9;
+  uint32 battery          = 10;
+  string roomId           = 11;
+  string roomName         = 12;
+  bool showHome           = 13;
+}
+
+// Thông tin Touch Panel
+message TouchPanel {
+  string id                 = 1;
+  Device device             = 2;
+  string icon               = 3;
+  string name               = 4;
+  string nameEn             = 5;   // Tên tiếng anh
+  bool favorite             = 6;
+  Room room                 = 7;   // Phòng
+  bool showHome             = 8;   // Hiển thị trạng thái trang nhà
+  uint32 autoOff            = 9;
+}
+
+// Thông tin thư viện remote
+message RemoteLibrary {
+  string id               = 1;
+  string name             = 2;
+  string icon             = 3;
+  string model            = 4;
+  uint32 uiRemoteTemplate = 5;  // UI Remote Template
+  string appVersion       = 6;  // Version của app
+  GroupRemote group       = 7;  // Nhóm remote
+  RemoteBrand brand       = 8;
+}
+
+message RemoteBrand {
+  string id               = 1;
+  string name             = 2;
+  RemoteCategory category = 3;
+}
+
+// Remote đa năng
+message RemoteMulti {
+  string id       = 1;
+  string remoteId = 2;
+  string name     = 3;
+
+  repeated RemoteMultiLibraryCmd remoteMultiLibraryCmds = 5;
+}
+
+// Remote nút lệnh đa năng
+message RemoteMultiLibraryCmd {
+  string id            = 1;
+  string remoteMultiId = 2;
+  string name          = 3;
+  uint32 order         = 4;
+  TypeLearn type       = 5;  // IR or RF
+}
+
+// Thông tin state remote điều hòa, trạng thái phòng trong điều hòa
+message AirConditionerState {
+  string remoteId                 = 1;  // Id của remote
+  PowerState powerState           = 2;
+  float temperature               = 3;  // Nhiệt độ Cool/Heat
+  ModeAc mode                     = 4;
+  SwingAc swing                   = 5;
+  FanAc fan                       = 6;
+  float temperatureRoom           = 7;   // Nhiệt độ Phòng
+  float humidityRoom              = 8;   // Độ ẩm phòng
+  string deviceId                 = 9;   // DeviceId để cập nhật trạng thái nhiệt độ phòng
+  ConnectionState connectionState = 10;  // Điều hòa online/offline
+  uint32 indoorId                 = 11;  // Id của dàn lạnh
+}
+
+// Thông tin state remote điều hòa, trạng thái phòng trong điều hòa
+message ControlState {
+  string controlId                = 1;  // Id của điều khiển
+  GroupDevice group               = 2;  // Nhóm nào
+  PowerState powerState           = 3;
+  float temperature               = 4;  // Nhiệt độ Cool/Heat
+  ModeAc mode                     = 5;
+  SwingAc swing                   = 6;
+  FanAc fan                       = 7;
+  ConnectionState connectionState = 8;   // Online/offline
+  uint32 percentIn                = 9;   // Phần trăm hướng trong
+  uint32 percentOut               = 10;  // Phần trăm hướng ngoài
+}
+
+message RemoteACState {
+  bool power                  = 2;
+  uint32 temperature          = 3;
+  ModeAc mode                 = 4;
+  FanAc fan                   = 5;
+  bool swingHorizontal        = 6;
+  bool swingVertical          = 7;
+}
+
+// Thông tin nhà
+message Home {
+  string id             = 1;
+  string name           = 2;
+  string nameEn         = 3;
+  string backgroundName = 4;
+  float longitude       = 5;
+  float latitude        = 6;
+  bool isOwner          = 7;
+  bool isDefault        = 8;
+  string fullNameSharer = 9;
+
+  repeated UserHome users = 10;
+
+  uint32 featureCode = 11;
+  string securityCode = 12;
+  uint32 securityMode = 13;
+}
+
+message User {
+  string userId      = 1;
+  bytes avatar       = 2;
+  string fullName    = 3;
+  string email       = 4;
+  string phoneNumber = 5;
+  string language    = 6;
+  bool autoSwitchGps = 7;
+
+  uint64 order = 100;  // Số thứ tự của user
+}
+
+// Thành viên trong nhà
+message UserHome {
+  string id           = 1;
+  string userId       = 2;
+  string homeId       = 3;
+  bytes avatar        = 4;
+  string fullName     = 5;
+  bool isOwner        = 6;
+  uint64 acceptedDate = 7;  // Ngày chấp nhận thành viên
+}
+
+// Công dân
+message Citizen {
+  string homeId       = 1;
+  Project project     = 2;
+  Building building   = 3;
+  Floor floor         = 4;
+  Apartment apartment = 5;
+  uint64 receivedDate = 6;  // Ngày đã nhận unixtime
+  uint64 approvedDate = 7;  // Ngày đã duyệt nếu chưa có thì đang chờ phê duyệt ngược lại thì đã duyệt
+}
+
+// Thông tin phòng
+message Room {
+  string id   = 1;
+  string name = 2;
+  Home home   = 3;
+
+  repeated Device devices                       = 4;  // Thiết bị kết nối wifi
+  repeated Switcher switchers                   = 5;  // Nút Công tắc
+  repeated CurtainSwitcher curtainSwitchers     = 6;  // Nút Rèm cửa
+  repeated Remote remotes                       = 7;  // Remote
+  repeated Motion motions                       = 8;  // Motion
+  repeated Homekit homekits                     = 9;  // Homekit - Gateway
+  string nameEn                                 = 10;
+  string backgroundName                         = 11;
+  repeated Button buttons                       = 12;  // Nút nhấn
+  repeated GroupControl groupControls           = 13;  // Thiết bị nhóm
+  repeated LedItem ledItem                      = 14;
+  repeated LedDriver ledDriver                  = 15;
+  repeated LightSensor lightSensors             = 16;
+  repeated EnvironmentSensor environmentSensors = 17;
+  repeated SmartPlug smartPlugs                 = 18;
+  repeated Curtain curtains                     = 19;
+  repeated TouchPanel touchPanels               = 20;
+}
+
+// Thông tin về lịch
+message Schedule {
+  DateTime datetime = 1;
+  bool repeat       = 2;
+  bool mon          = 3;  // Thứ 2
+  bool tue          = 4;  // Thứ 3
+  bool wed          = 5;  // Thứ 4
+  bool thu          = 6;  // Thứ 5
+  bool fri          = 7;  // Thứ 6
+  bool sat          = 8;  // Thứ 7
+  bool sun          = 9;  // CN
+}
+
+// Thông tin thực thi remote chung
+message RemoteScheduleAction {
+  string id                      = 1;
+  string remoteScheduleId        = 2;
+  string remoteLibraryCmdId      = 3;
+  string remoteMultiLibraryCmdId = 4;
+  uint32 delay                   = 5;
+  uint32 order                   = 6;
+  string name                    = 7;
+}
+
+// Thông tin thực thi remote điều hòa
+message AirConditionerScheduleAction {
+  string remoteScheduleId = 1;  // Id của remote
+  PowerState powerState   = 2;
+  float temperature       = 3;
+  ModeAc mode             = 4;
+  SwingAc swing           = 5;
+  FanAc fan               = 6;
+}
+
+// Thông tin về RemoteSchedule
+message RemoteSchedule {
+  string id                                         = 1;
+  Remote remote                                     = 2;
+  Schedule schedule                                 = 3;
+  AirConditionerScheduleAction airConditionerAction = 4;  // Thực thi hẹn lịch điều hòa
+  repeated RemoteScheduleAction remoteActions       = 5;  // Thực thi hẹn lịch remote
+  bool active                                       = 6;
+}
+
+// Thông tin về SwitcherSchedule
+message SwitcherSchedule {
+  string id             = 1;
+  PowerState powerState = 2;  // ON/OFF
+  Switcher switcher     = 3;
+  Schedule schedule     = 4;
+  bool active           = 5;
+}
+
+// Thông tin về CurtainSwitcherSchedule hẹn lịch rèm cửa
+message CurtainSwitcherSchedule {
+  string id                       = 1;
+  CurtainSwitcher curtainSwitcher = 2;
+  Schedule schedule               = 3;
+  uint32 percentIn                = 4;  // Phần trăm hướng trong
+  uint32 percentOut               = 5;  // Phần trăm hướng ngoài
+  bool active                     = 6;
+}
+
+// Thông tin về CurtainSchedule hẹn lịch rèm cửa
+message CurtainSchedule {
+  string id                       = 1;
+  Curtain curtain                 = 2;
+  Schedule schedule               = 3;
+  uint32 percent                  = 4;  // Phần trăm
+  bool active                     = 5;
+}
+
+message LightSensor {
+  string id               = 1;
+  string icon             = 2;
+  string name             = 3;
+  string nameEn           = 4;
+  ButtonState buttonState = 5;
+  bool favorite           = 6;
+  uint32 order            = 7;
+  Device device           = 8;
+}
+
+// Đồng hồ do điện/nước
+message Meter {
+  string id           = 1;
+  string serialNumber = 2;
+  TypeMeter typeMeter = 3;
+  string deviceId     = 4;  // DeviceId, HardwareId giống nhau cho điện/nước
+  string icon         = 5;
+
+  // [Deprecated]
+  uint32 month    = 6;  // Tháng hiện tại|Tháng đã chọn
+  float metric    = 7;  // Tổng chỉ số điện|nước của tháng hiện tại
+  uint32 estimate = 8;  // Tổng tiền điện|nước của tháng hiện tại
+
+  // [Deprecated]
+  repeated MeterIndex indexs = 9;  // Chỉ số 1 ngày
+
+  // [Deprecated]
+  repeated MeterEstimate estimates = 10;  // Ước tính số lượng tiêu thụ + tiền điện|nước 6 tháng gần nhất
+
+  ConnectionState connectionState = 11;  // Offline/Online/Disconect
+  uint32 limitMoney               = 12;  // Giới hạn mức tiền/tháng
+  uint32 alertOverConsume         = 13;  // Cảnh báo vượt mức tiêu thụ 0: Không | 1:Tức thời | 2:Hàng ngày | 3:Hàng tuần
+
+  uint64 lastUpdateIndex = 14;  // Thời gian cập nhật chỉ số lần cuối Unix Timestamp
+  bool lostUpdateIndex   = 15;  // Đã mất kết nối cập nhật chỉ số mặc định quá 10'
+  uint64 lastFromDate    = 16;  // Ngày bắt đầu chốt của thàng gần nhất
+
+  repeated MeterEstimate estimateMonths = 17;  // Ước tính số lượng tiêu thụ + tiền điện|nước 7 tháng gần nhất
+  repeated MeterEstimate estimateDays   = 18;  // Ước tính số lượng tiêu thụ các ngày trong 1 tháng
+
+  Device device = 19;  // Thông tin về thiết bị của đồng hồ
+
+  float lastMetricIndex = 20;  // Chỉ số điện|nước cuối cùng nhận được
+}
+
+// Chỉ số điện/nước
+message MeterIndex {
+  string serialNumber = 1;  // Số serial number của thiết bị
+  TypeMeter type      = 2;  // 0: Điện, 1: Nước
+  float metric        = 3;  // Chỉ số điện|nước
+  int32 hour          = 4;  // Giờ cập nhật
+}
+
+// Ước tính tiền điện/nước theo tháng
+message MeterEstimate {
+  string serialNumber = 1;  // Số serial number của thiết bị
+  TypeMeter type      = 2;  // 0: Điện, 1: Nước
+  uint32 month        = 3;  // Tháng
+  uint32 estimate     = 4;  // Tiền điện|nước
+  float consume       = 5;  // Số lượng tiêu thụ điện|nước
+  uint32 year         = 6;  // Năm
+  uint32 day          = 7;  // Ngày
+  uint32 hour         = 8;  // Giờ
+}
+
+message ActiveTime {
+  bool enableFullTime = 1;  // Cho phép toàn thời gian
+  uint32 enableStart  = 2;  // Thời gian bắt đầu kích hoạt kịch bản, quy thành phút VD: 13h10 -> 13*60+10,
+  uint32 enableEnd    = 3;  // Thời gian kết thúc cho phép kịch bản hoạt động, quy thành phút.
+  uint32 enableDayMap =
+      4;  // Những ngày cho phép ngữ cảnh hoạt động trong tuần: bit thấp nhất tương ứng với enable/disable cho thứ 2,...
+          // bit thứ 7 tương ứng với chủ nhật. VD: enableDayMap = 0x05 tức là cho phép thứ 4 và thứ 2.
+}
+
+// Thông tin kịch bản
+message Scene {
+  string id     = 1;  // Id
+  string homeId = 2;  // HomeId
+  string name   = 3;  // Tên
+  string nameEn = 4;  // Tên tiếng anh
+  string icon   = 5;  // Icon
+  bool favorite = 6;  // Yêu thích
+
+  ConditionScene condition = 7;  // AUTO/MANUAL/Timeline enum
+
+  Switcher switcherCondition = 8;  // Công tắc thực hiện điều kiện
+  PowerState powerState      = 9;  // Điều kiệu công tắc là Đóng hay Mở
+
+  repeated SceneSwitcherAction sceneSwitcherActions          = 10;  // Thực thi Công tắc
+  repeated SceneCurtainSwitcherAction curtainSwitcherActions = 11;  // Thực thi rèm cửa
+  repeated SceneAirConditionerAction airConditionerActions   = 12;  // Thực thi Điều hòa
+  repeated SceneRemoteAction sceneRemoteActions              = 13;  // Thực thi Remote chung
+  repeated SceneMotionAction sceneMotionActions              = 14;  // Thực thi PIR
+
+  uint32 type = 15;  // 0: Kịch bản thường, 1: Công tắc cùng On/Off, 2: Công tắc đảo ngược, 3: Cảm biến điều khiển, 4: Timeline, 5: Smart button, 6: Thiết bị điều khiển
+
+  bool confirmed = 16;  // Thiết bị đã xác nhận việc Bridge đã xong
+
+  Motion motionCondition = 17;  // Điều khiện khi motion sensor active
+
+  ActiveTime activeTime = 18;  // Khoảng thời gian active ngữ cảnh.
+
+  bool isDisable = 19;  // Disable/Enable kịch bản, mặc định là enable để tương thích với version cũ.
+
+  string actionListIcon = 20;  // Danh sách icon thiết bị thực thi.
+
+  Schedule schedule = 21;  // Điều khiển theo lịch
+
+  repeated SceneLedDriverAction sceneLedDriverActions = 22;  // Thực thi channel của led driver
+
+  Button buttonCondition = 23;
+
+  // Bổ sung Điều kiện khi device trigger trong kịch bản thiết bị điều khiển
+  LedDriver ledDriverCondition =24;
+  EnvironmentSensor environmentSensorsCondition = 25;
+  repeated SceneCurtainAction curtainActions = 26;  // Thực thi động cơ rèm cửa
+}
+
+// Thông tin kịch bản thực thi công tắc
+message SceneSwitcherAction {
+  string id             = 1;
+  string sceneId        = 2;
+  Switcher switcher     = 3;  // Công tắc
+  PowerState powerState = 4;  // Trạng thái On/Off
+  uint32 order          = 5;
+}
+
+// Thông tin kịch bản thực thi điều hòa
+message SceneAirConditionerAction {
+  string id             = 1;
+  string sceneId        = 2;
+  Remote remote         = 3;
+  PowerState powerState = 4;  // Trạng thái On/Off enum
+  float temperature     = 5;  // Nhiệt độ cool
+  ModeAc mode           = 6;  // Enum
+  SwingAc swing         = 7;  // Enum
+  FanAc fan             = 8;  // Enum
+  uint32 order          = 9;
+}
+
+// Thông tin kịch bản thực thi công tắc rèm cửa
+message SceneCurtainSwitcherAction {
+  string id                       = 1;
+  string sceneId                  = 2;
+  CurtainSwitcher curtainSwitcher = 3;
+  uint32 percentIn                = 4;  // Phần trăm hướng trong
+  uint32 percentOut               = 5;  // Phần trăm hướng ngoài
+}
+
+// Thông tin kịch bản thực thi công tắc rèm cửa
+message SceneCurtainAction {
+  string id                       = 1;
+  string sceneId                  = 2;
+  Curtain curtain                 = 3;
+  uint32 percent                  = 4;
+}
+
+
+// Thông tin thực thi remote chung remote đơn năng/đa năng trừ công tắc/điều hòa
+message SceneRemoteAction {
+  string id                      = 1;
+  string sceneId                 = 2;
+  Remote remote                  = 3;
+  string RemoteLibraryCmdId      = 4;
+  string RemoteMultiLibraryCmdId = 5;
+  uint32 delay                   = 6;
+  uint32 order                   = 7;
+  string name                    = 8;
+}
+
+// Thông tin kịch bản thực thi motion
+message SceneMotionAction {
+  string id         = 1;
+  string sceneId    = 2;
+  Motion motion     = 3;  // Công tắc
+  MotionState state = 4;  // Trạng thái PIR
+  uint32 order      = 5;
+}
+
+// Thông tin kịch bản thực thi led driver
+message SceneLedDriverAction {
+  string id               = 1;
+  string sceneId          = 2;
+  LedDriver ledDriver     = 3;
+  PowerState powerState   = 4;
+  int32 brightnessPercent = 5;
+  string icon             = 6;
+  uint32 order            = 7;
+}
+
+message SceneButtonAction {
+  string id               = 1;
+  string sceneId          = 2;
+  Button button           = 3;
+  ButtonState buttonState = 4;
+  uint32 order            = 5;
+}
+
+// Thông tin nút lệnh điều khiển remote
+message RemoteCommand {
+  string name                    = 1;  // Tên nút lệnh, khớp ở app
+  string RemoteLibraryCmdId      = 2;  // Id của nút lệnh
+  string RemoteMultiLibraryCmdId = 3;  // Id của nút lệnh đa năng
+}
+
+// Enum nhóm điều hòa, quạt, rèm cửa
+enum TypeEcho {
+  Echo        = 0;  // Phản hồi bình thường
+  DeviceLogin = 1;  // Login của thiết bị
+}
+
+// Thông tin phản hồi mã lỗi từ server
+message StatusCode {
+  uint32 code    = 1;  // Mã lỗi trả về 0: Thành công, <>0: Lỗi
+  string message = 2;  // Thông báo lỗi nếu có
+}
+
+// Thiết bị sử dụng trong kịch bản bắt cầu
+message DeviceInScene {
+  Switcher switcher = 1;
+  Motion motion     = 2;
+  LedDriver ledDriver = 3;
+}
+
+// State của rèm cửa (hiện tại chỉ dùng để gửi xuống device trong kịch bản trigger)
+message CurtainSwitcherState {
+  uint32 percentIn          = 1;   // Phần trăm hướng trong
+  uint32 percentOut         = 2;   // Phần trăm hướng ngoài
+}
+
+// State của động cơ rèm cửa (hiện tại chỉ dùng để gửi xuống device trong kịch bản trigger)
+message CurtainState {
+  uint32 percent            = 1;    // Phần trăm
+}
+
+// Thiết bị sử dụng trong kịch bản Trigger
+message DeviceTriggerScene {
+  string hardwareId           = 1;
+  uint32 deviceIndex          = 2;  // Vị trí
+  uint32 groupControl   = 3;  // Nhóm điều khiển
+  oneof ControlState {
+    PowerState powerState     = 4;
+    MotionState motionState   = 5;
+    ButtonState buttonState   = 6;
+    int32 brightnessPercent   = 7;
+    float environmentValue    = 8;
+    CurtainSwitcherState curtainSwitcherState = 9;
+    AirConditionerState airConditionerState = 10;
+    CurtainState curtainState = 11;
+  }
+}
+
+enum DataType {
+  BINARIES = 0;
+  BASE64   = 1;
+}
+
+enum UserRole {
+  NormalUser      = 0;
+  OperationalUser = 1;
+  UserRoleMax     = 2;
+}
+
+enum MotionSensorType {
+  MotionSensor                  = 0;
+  DoorSensor                    = 1;
+  LeakSensor                    = 2;
+  SmokeSensor                   = 3;
+  GasSensor                     = 4;
+  Temperature_Humidity_Pressure = 5;
+  Motion_Light                  = 6;
+  Motion_Vibrate                = 7;
+}
+
+enum EnvironmentSensorType {
+  Unknow      = 0;
+  Temperature = 1;
+  Humidity    = 2;
+  Pressure    = 3;
+  Light       = 4;
+  Vibrate     = 5;
+}
+
+message EnvironmentSensorReport {
+  EnvironmentSensorType type = 1;
+  float value                = 2;
+}
+
+message EnvironmentSensor {
+  string id                               = 1;
+  string icon                             = 2;
+  string name                             = 3;
+  string nameEn                           = 4;
+  repeated EnvironmentSensorReport report = 5;
+  bool favorite                           = 6;
+  uint32 order                            = 7;
+  Device device                           = 8;
+  uint32 index                            = 9;
+  uint32 battery                          = 10;
+  Room room                               = 11;
+  bool showHome                           = 12;
+  MotionSensorType type                   = 13;
+}
+
+message SmartPlug {
+  string id     = 1;
+  string icon   = 2;
+  string name   = 3;
+  string nameEn = 4;
+  uint32 index  = 5;
+  bool favorite = 6;
+  uint32 order  = 7;
+  Device device = 8;
+  float amp     = 9;
+  float power   = 10;
+  float volt    = 11;
+  Room room     = 12;
+  bool showHome = 13;
+}
+
+message UserSetting {
+  string defaultHomeId = 1;
+}
+
+// Nhận yêu cầu tìm kiếm user theo key
+message FileUploadForm {
+  string name = 1;
+  bytes image = 2;
+  uint32 sizeInByte = 3;
+}

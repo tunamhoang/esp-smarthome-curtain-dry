@@ -1,0 +1,941 @@
+// Sử dụng proto3
+syntax = "proto3";
+
+/***** Import messages *****/
+option java_package         = "com.sunshine.smarthome.server.message.protobuf";
+option java_outer_classname = "ClientBuf";
+import "common-message.proto";
+
+/***** Messages ClientRequest/ClientResponse của các Devices *****/
+/* Thiết bị kết nối wifi Devices */
+// Nhận được yêu cầu cập nhật Firmware
+message ForceUpdateFirmwareDeviceClientRequest {
+  string hardwareId = 1;  // hardwareId của thiết bị
+}
+
+// Phản hồi thông tin cập nhật Firmware
+message ForceUpdateFirmwareDeviceClientResponse {
+  string deviceId       = 1;  // deviceId của thiết bị
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu cập nhật thiết bị
+message UpdateDeviceClientRequest {
+  uint32 updateMode     = 1;  // Update tự động hoặc thủ công
+  string hardwareId     = 2;  // hardwareId của thiết bị
+  uint32 reactivity     = 3;  // Độ nhạy của thiết bị
+  uint32 brightness     = 4;  // Độ sáng của thiết bị
+  uint32 timeDelay      = 5;  // Thời gian chờ để tắt PIR
+  uint32 sceneActiveMap = 6;  // |0000|0000|0000|0000|0000|0000|0000|0000|,
+                              // Cho phép chế độ kích hoạt kịch bản được lưu
+                              // trong 4 bit, từ thấp đến cao với 1: Mode double
+                              // tap, 2: Mode scene switcher Ví dụ sceneActiveMap
+                              // = 0x21 tức là nút nhấn số 2 được kích hoạt nút
+                              // kịch bản và nút số 1 kích hoạt double tap.
+}
+
+// Phản hồi cập nhật thiết bị
+message UpdateDeviceClientResponse {
+  string deviceId = 1;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+message UpdateWSEndpointClientRequest {
+  string deviceId  = 1;
+  string wsEnpoint = 2;
+}
+
+message UpdateWSEndpointClientResponse {
+  StatusCode statusCode = 1000;
+}
+
+message DeleteDeviceClientRequest {
+  string hardwareId  = 1;
+}
+
+message DeleteDeviceClientResponse {
+  StatusCode statusCode = 1000;
+}
+
+/* Thiết bị Công tắc */
+// Nhận được yêu cầu gửi danh sách công tắc của 1 thiết bị
+message GetSwitchersClientRequest {
+  string hardwareId = 1;  // hardwareId của thiết bị
+}
+
+// Phản hồi danh sách công tắc của 1 thiết bị
+message GetSwitchersClientResponse {
+  Switcher switchers = 1;  // Thông tin về thiết bị
+  string deviceId    = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu gửi trạng thái của 1 nút của công tắc
+message GetSwitcherClientRequest {
+  uint32 switcher   = 1;  // Công tắc 1,2,3,4
+  string hardwareId = 2;  // hardwareId của thiết bị
+}
+
+// Phản hồi trạng thái của 1 nút của công tắc
+message GetSwitcherClientResponse {
+  uint32 switcher       = 1;  // Công tắc 1,2,3,4
+  PowerState powerState = 2;  // Trạng thái ON/OFF
+  Device device         = 3;  // Thông tin về thiết bị
+  DateTime datetime     = 4;  // Thời gian chuyển trạng thái của công tắc
+  string deviceId       = 5;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu trả về nhật ký, hành trình thiết bị
+message GetLogSwitcherClientRequest {
+  uint32 switcher   = 1;  // Công tắc 1,2,3,4
+  string hardwareId = 2;  // hardwareId của thiết bị
+}
+
+// Phản hồi nhật ký/hành trình thiết bị
+message GetLogSwitcherClientResponse {
+  uint32 switcher         = 1;  // Công tắc 1,2,3,4
+  uint32 totalTimeOnOrgin = 2;
+  uint32 totalTimeOnYear  = 3;
+  uint32 totalTimeOnMonth = 4;
+  uint32 timeOnLastDate   = 5;
+  uint32 timeOffLastDate  = 6;
+  string deviceId         = 7;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu thay đổi On/Off thiết bị
+message SwitcherClientRequest {
+  string deviceId       = 1;  // Chỉ được sử dụng khi dùng topic
+  uint32 switcher       = 2;  // Công tắc 1,2,3,4
+  PowerState powerState = 3;  // Trạng thái ON/OFF
+  string hardwareId     = 4;  // hardwareId của thiết bị
+}
+
+// Phản hồi thay đổi On/Off thiết bị
+message SwitcherClientResponse {
+  uint32 switcher       = 1;  // Công tắc 1,2,3,4
+  PowerState powerState = 2;  // Trạng thái ON/OFF
+  string deviceId       = 3;  // deviceId
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu thêm mới 1 lịch của 1 công tắc
+message AddSwitcherScheduleClientRequest {
+  SwitcherSchedule schedule = 1;
+  string hardwareId         = 2;  // hardwareId của thiết bị
+}
+
+// Phản hồi thêm mới 1 lịch của 1 công tắc
+message AddSwitcherScheduleClientResponse {
+  string switcherScheduleId = 1;
+  string deviceId           = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu update 1 lịch của 1 công tắc
+message UpdateSwitcherScheduleClientRequest {
+  SwitcherSchedule schedule = 1;
+  string hardwareId         = 2;  // hardwareId của thiết bị
+}
+
+// Phản hồi update 1 lịch của 1 công tắc
+message UpdateSwitcherScheduleClientResponse {
+  string switcherScheduleId = 1;
+  string deviceId           = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu xóa 1 lịch của 1 công tắc
+message DeleteSwitcherScheduleClientRequest {
+  string switcherScheduleId = 1;  // Id của switcherScheduleId
+  string hardwareId         = 2;  // hardwareId của thiết bị
+}
+
+// Phản hồi xóa 1 lịch của 1 công tắc
+message DeleteSwitcherScheduleClientResponse {
+  string switcherScheduleId = 1;
+  string deviceId           = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu cập nhật 1 nút công tắc
+message UpdateSwitcherClientRequest {
+  uint32 switcher   = 1;  // Công tắc 1,2,3,4
+  uint32 keepState  = 2;  // 0: Off, 1: On, 2: Keep giữ trạng thái cũ
+  string hardwareId = 3;  // hardwareId của thiết bị
+  uint32 autoOff    = 4;  // Tự tắt sau x phút hoạt động.
+}
+
+// Nhận được yêu cầu cập nhật 1 nút công tắc
+message UpdateSwitcherClientResponse {
+  string deviceId   = 1;  // deviceId
+
+  uint32 switcher   = 2;  // Công tắc 1,2,3,4
+  uint32 keepState  = 3;  // 0: Off, 1: On, 2: Keep giữ trạng thái cũ
+  uint32 autoOff    = 4;  // Tự tắt sau x phút hoạt động.
+
+  StatusCode statusCode = 1000;
+}
+
+message UpdateSwitcherState {
+  string deviceId       = 1;  // deviceId
+  uint32 switcher       = 2;  // Công tắc 1,2,3,4
+  uint32 keepState      = 3;  // 0: Off, 1: On, 2: Keep giữ trạng thái cũ
+  uint32 autoOff        = 4;  // Tự tắt sau x phút hoạt động.
+  PowerState powerState = 5;  // Trạng thái ON/OFF
+}
+
+/* Thiết bị rèm cửa */
+// Nhận được lệnh điều khiển rèm cửa
+message CurtainSwitcherClientRequest {
+  uint32 percentIn  = 1;  // Phần trăm hướng trong
+  uint32 percentOut = 2;  // Phần trăm hướng ngoài
+  string hardwareId = 3;  // hardwareId của thiết bị
+}
+
+// Phản hồi lệnh điều khiển rèm cửa
+message CurtainSwitcherClientResponse {
+  uint32 percentIn  = 1;  // Phần trăm hướng trong
+  uint32 percentOut = 2;  // Phần trăm hướng ngoài
+  string deviceId   = 3;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu thêm mới 1 lịch của rèm cửa
+message AddCurtainSwitcherScheduleClientRequest {
+  CurtainSwitcherSchedule schedule = 1;
+  string hardwareId                = 2;  // hardwareId của thiết bị
+}
+
+// Phản hồi thêm mới 1 lịch của rèm cửa
+message AddCurtainSwitcherScheduleClientResponse {
+  string curtainSwitcherScheduleId = 1;
+  string deviceId                  = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu update 1 lịch của rèm cửa
+message UpdateCurtainSwitcherScheduleClientRequest {
+  CurtainSwitcherSchedule schedule = 1;
+  string hardwareId                = 2;  // hardwareId của thiết bị
+}
+
+// Phản hồi update 1 lịch của rèm cửa
+message UpdateCurtainSwitcherScheduleClientResponse {
+  string curtainSwitcherScheduleId = 1;
+  string deviceId                  = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu xóa 1 lịch của rèm cửa
+message DeleteCurtainSwitcherScheduleClientRequest {
+  string curtainSwitcherScheduleId = 1;  // Id của curtainSwitcherScheduleId
+  string hardwareId                = 2;  // hardwareId của thiết bị
+}
+
+// Phản hồi xóa 1 lịch của rèm cửa
+message DeleteCurtainSwitcherScheduleClientResponse {
+  string curtainSwitcherScheduleId = 1;
+  string deviceId                  = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+/* Điều hòa */
+// Nhận được yêu cầu điều khiển điều hòa
+message AirConditionerClientRequest {
+  AirConditionerState state = 1;  // Dành cho điều hòa điều khiển bằng dây
+  string hardwareId         = 2;  // hardwareId của thiết bị
+  string encode             = 3;  // Chuỗi mã hóa dành cho điều hòa điều khiển bằng IR
+}
+
+// Phản hồi yêu cầu điều khiển điều hòa
+message AirConditionerClientResponse {
+  AirConditionerState state = 1;
+  string deviceId           = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu gửi trạng thái điều hòa
+message GetAirConditionerClientRequest {
+  string hardwareId = 1;  // hardwareId của thiết bị
+  uint32 indoorId   = 2;  // Id của dàn lạnh, 0 hoặc null nếu máy lạnh chỉ quản lý 1 dàn lạnh
+}
+
+// Phản hồi trạng thái điều hòa mới nhất
+message GetAirConditionerClientResponse {
+  AirConditionerState state = 1;
+  string deviceId           = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Dùng cho trường hợp điều hòa yêu cầu thêm dàn lạnh
+message AirConditionerAddIndoorsRequest {
+  string deviceId          = 1;
+  repeated uint32 indoorId = 2;
+}
+
+// Phản hồi yêu cầu thêm dàn lạnh mới của điều hòa
+message AirConditionerAddIndoorsResponse {
+  string hardwareId        = 1;
+  repeated uint32 indoorId = 2;
+
+  StatusCode statusCode = 1000;
+}
+
+// Dùng cho trường hợp điều hòa yêu cầu xóa dàn lạnh
+message AirConditionerRemoveIndoorRequest {
+  string deviceId = 1;
+  uint32 indoorId = 2;
+}
+
+// Phản hồi yêu cầu xóa dàn lạnh của điều hòa
+message AirConditionerRemoveIndoorResponse {
+  string hardwareId = 1;
+
+  StatusCode statusCode = 1000;
+}
+
+/* Thiết bị Remote chung */
+// Nhận được lệnh gửi đến thiết bị
+message SendCommandRemoteClientRequest {
+  repeated uint32 commands = 1 [packed = true];
+  TypeLearn type           = 2;  // IR or RF
+  string hardwareId        = 3;  // hardwareId của thiết bị
+}
+
+// Phản hồi lệnh gửi đến thiết bị
+message SendCommandRemoteClientResponse {
+  string deviceId       = 1;  // deviceId của thiết bị
+  StatusCode statusCode = 1000;
+}
+
+// Nhận được yêu cầu học lệnh
+message LearnCommandRemoteClientRequest {
+  string remoteId                = 1;  // Id của remote
+  string remoteLibraryCmdId      = 2;  // Id của lệnh từ thư viện
+  string remoteMutilLibraryCmdId = 3;  // Id của lệnh từ remote đa năng
+  uint32 timeout                 = 4;  // Thiết lập timout cho client khi học lệnh
+  TypeLearn type                 = 5;  // IR or RF
+  string hardwareId              = 6;  // hardwareId của thiết bị
+}
+
+// Phản hồi yêu cầu học lệnh
+message LearnCommandRemoteClientResponse {
+  string remoteId                = 1;                  // Id của remote
+  string remoteLibraryCmdId      = 2;                  // Id của lệnh từ thư viện
+  string remoteMutilLibraryCmdId = 3;                  // Id của lệnh từ remote đa năng
+  repeated uint32 commands       = 4 [packed = true];  // Lệnh học được
+  TypeLearn type                 = 5;                  // IR or RF
+  string deviceId                = 6;                  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+message ControlRemoteACCommandClientRequest {
+  string deviceId             = 1;
+  string model                = 2;
+  RemoteACState remoteACState = 3;
+}
+
+message ControlRemoteACCommandClientResponse {
+  StatusCode statusCode = 1000;
+}
+
+/* Điện/nước */
+// Phản hồi thông tin thay đổi các chỉ số của thiết bị điện/nước runtime
+message MeterOnChangedClientResponse {
+  repeated MeterIndex indexs = 1;
+
+  StatusCode statusCode = 1000;
+}
+
+// Dùng cho trường công tắc chủ động gửi On/Off lên server
+// Phản hồi thông tin thay đổi các chỉ số của thiết bị điện/nước runtime
+message SwitcherOnChangedClientResponse {
+  uint32 switcher       = 1;  // Công tắc 1,2,3,4
+  PowerState powerState = 2;  // Trạng thái ON/OFF
+  string deviceId       = 3;  // deviceId của thiết bị
+  BridgeInfo bridge     = 4;  // Thông tin về thiết bị bắc cầu
+
+  StatusCode statusCode = 1000;
+}
+
+// Dùng cho trường công tắc rèm cửa chủ động gửi trạng thái lên server
+// Phản hồi thông tin thay đổi trạng thái của điều hòa runtime
+message CurtainSwitcherOnChangedClientResponse {
+  uint32 percentIn  = 1;  // Phần trăm hướng trong
+  uint32 percentOut = 2;  // Phần trăm hướng ngoài
+  string deviceId   = 3;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Dùng cho trường điều hòa chủ động gửi trạng thái lên server, runtime
+message AirConditionerOnChangedClientResponse {
+  AirConditionerState state = 1;
+  string deviceId           = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Phản hồi thông tin phần trăm cập nhật firmware runtime
+message ProgressUpdateFirmwareOnChangedDeviceClientResponse {
+  string deviceId   = 1;  // DeviceId cho việc đồng bộ tài khoản nhiều thiết bị
+  string hardwareId = 2;  // HardwareId thiết bị khi qua Root
+  uint32 pageSize   = 3;  // Để thiết bị biết max/len của buffer
+  uint32 pageIndex  = 4;  // Vị trí index hiện tại bắt đầu từ 0
+  uint32 totalPage  = 5;  // Tổng page
+
+  StatusCode statusCode = 1000;
+}
+
+// Phản hồi thông tin kết nối của các thiết bị runtime
+message DeviceOnChangedDeviceClientResponse {
+  string deviceId                 = 1;  // DeviceId
+  ConnectionState connectionState = 2;  // Offline/Online/Disconect
+
+  StatusCode statusCode = 1000;
+}
+
+message MotionOnChangedClientResponse {
+  string deviceId                   = 1;  // deviceId của thiết bị
+  MotionState motionState           = 2;  // state
+  BridgeInfo bridge                 = 3;  // Thông tin về thiết bị bắc cầu
+  MotionSensorType motionSensorType = 4;
+  float batteryCapacity             = 5;
+
+  StatusCode statusCode = 1000;
+}
+
+/* Thiết bị Homekit */
+message HomekitOnChangedClientResponse {
+  string deviceId         = 1;  // deviceId của thiết bị
+  HomekitMode homekitMode = 2;
+
+  StatusCode statusCode = 1000;
+}
+
+/* Thiết bị nút nhấn */
+message ButtonOnChangedClientResponse {
+  string deviceId         = 1;  // deviceId của thiết bị
+  ButtonState buttonState = 2;
+  uint32 button           = 3;
+  int32 battery           = 4;
+  BridgeInfo bridge       = 5;
+
+  StatusCode statusCode = 1000;
+}
+
+message DebugLoggingResponse {
+  string deviceId = 1;
+  string label    = 2;
+  string message  = 3;
+
+  StatusCode statusCode = 1000;
+}
+
+message LedDriverOnChangedClientResponse {
+  string deviceId         = 1;
+  uint32 ledIndex         = 2;
+  int32 brightnessPercent = 3;
+  PowerState powerState   = 4;
+  uint32 groupControl     = 5;
+
+  StatusCode statusCode = 1000;
+}
+
+message EnvironmentOnchangedClientResponse {
+  string deviceId                = 1;
+  EnvironmentSensorReport report = 2;
+  float batteryCapacity          = 3;
+  BridgeInfo bridgeInfo          = 4;
+
+  StatusCode statusCode = 1000;
+}
+
+message SmartPlugOnchangedClientResponse {
+  string deviceId       = 1;
+  uint32 index          = 2;
+  float amp             = 3;
+  float power           = 4;
+  float volt            = 5;
+  PowerState powerState = 6;
+
+  StatusCode statusCode = 1000;
+}
+
+// Dùng cho trường động cơ rèm cửa chủ động gửi trạng thái lên server
+// Phản hồi thông tin thay đổi trạng thái của điều hòa runtime
+message CurtainOnChangedClientResponse {
+  uint32 percent    = 1;  // Phần trăm
+  string deviceId   = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+message TouchPanelControlSwitchOnChangedClientResponse {
+  string touchPanelId     = 1;
+  string switcherId       = 2;
+  uint32 switcher         = 3;
+  PowerState powerState   = 4;
+
+  StatusCode statusCode = 1000;
+}
+
+message TouchPanelControlCurtainSwitchOnChangedClientResponse {
+  string touchPanelId         = 1;
+  string curtainSwitcherId    = 2;
+  uint32 percentIn            = 3;
+  uint32 percentOut           = 4;
+
+  StatusCode statusCode = 1000;
+}
+
+message TouchPanelControlSceneOnChangedClientResponse {
+  string touchPanelId         = 1;
+  string sceneId              = 2;
+
+  StatusCode statusCode = 1000;
+}
+
+message TouchPanelControlLedDriverOnChangedClientResponse {
+  string touchPanelId         = 1;
+  string ledDriverId          = 2;
+  PowerState powerState       = 3;
+  int32 brightnessPercent     = 4; // -1 khi không yêu cầu điều khiển
+
+  StatusCode statusCode = 1000;
+}
+
+message TouchPanelRequestComponentStateOnChangedClientResponse {
+  string touchPanelId           = 1;
+  string componentId            = 2;
+  uint32 index                  = 3;
+  TouchPanelComponentType type  = 4;
+
+  StatusCode statusCode = 1000;
+}
+
+/* Thiết bị cảm biến chuyển động */
+// Nhận được yêu cầu thay đổi trạng thái chuyển động
+message MotionClientRequest {
+  string hardwareId       = 1;  // hardwareId của thiết bị
+  MotionState motionState = 2;  // state
+}
+
+// Phản hồi thay đổi trạng thái thiết bị Motion|PIR
+message MotionClientResponse {
+  string deviceId         = 1;  // deviceId
+  MotionState motionState = 2;  // state
+
+  StatusCode statusCode = 1000;
+}
+
+message UpdateMotionState {
+  string deviceId         = 1;  // deviceId
+  MotionState motionState = 2;  // state
+}
+
+/* Kịch bản */
+// Nhận được yêu về cầu kịch bản bắc cầu
+message SceneClientRequest {
+  string sceneId = 1;  // sceneId
+
+  DeviceInScene source = 2;  // Thiết bị điều khiển
+
+  repeated DeviceInScene target = 3;  // danh sách các thiết bị được điều khiển
+
+  uint32 type = 4;  // 1: Cùng On/Off, 2: Đảo ngược
+
+  uint32 mode = 5;  // 1: Add, 2: Edit, 3: Delete
+
+  string hardwareId = 6;
+
+  ActiveTime activeTime = 7;
+}
+
+// Phản hồi về kịch bản bắc cầu
+message SceneClientResponse {
+  string sceneId = 1;  // sceneId
+
+  Switcher switcher = 2;  // switcher
+
+  uint32 mode = 3;  // 1: Add, 2: Edit, 3: Delete
+
+  StatusCode statusCode = 1000;
+}
+
+// Điều khiển từng đèn
+message LedDriverClientRequest {
+  string hardwareId       = 1;
+  uint32 ledIndex         = 2;
+  int32 brightnessPercent = 3;  // -1 khi không yêu cầu điều khiển
+  PowerState powerState   = 4;
+  uint32 groupControl     = 5;  // in binary
+}
+
+// Phản hồi điều khiển từng đèn
+message LedDriverClientResponse {
+  string deviceId         = 1;
+  int32 ledIndex          = 2;
+  int32 brightnessPercent = 3;
+  PowerState powerState   = 4;
+  uint32 groupControl     = 5;  // in binary
+
+  StatusCode statusCode   = 1000;
+}
+
+message SceneGroupClientRequest {
+  repeated SwitcherClientRequest switcherClientRequest   = 1;
+  repeated LedDriverClientRequest ledDriverClientRequest = 2;
+}
+
+/* Điện/nước */
+/* Lấy giá trị điện/nước bị mất trong khoảng thời gian*/
+message MeterClientRequest {
+  uint32 date = 1;  // in month
+}
+
+// Phản hồi thông tin thay đổi các chỉ số của thiết bị điện/nước runtime
+message MeterClientResponse {
+  uint32 id                  = 1;
+  string hardwareId          = 2;
+  repeated MeterIndex indexs = 3;
+  uint32 timestamp           = 4;  // Thời gian gửi lên server unixtime
+
+  StatusCode statusCode = 1000;
+}
+
+message MeterClientConfirm {
+  uint32 id = 1;
+
+  StatusCode statusCode = 1000;
+}
+
+// Yêu cầu chuyển mode homekit
+message SetHomekitModeClientRequest {
+  string hardwareId       = 1;
+  HomekitMode homekitMode = 2;
+}
+
+// Phản hồi yêu cầu chuyển mode homekit
+message SetHomekitModeClientResponse {
+  StatusCode statusCode = 1000;
+}
+
+/* Kịch bản */
+// Nhận được yêu về cầu kịch bản Trigger
+message SceneTriggerClientRequest {
+  string sceneId = 1;  // sceneId
+  
+  DeviceInScene source = 2;  // Thiết bị điều khiển
+  
+  repeated DeviceInScene target = 3;  // danh sách các thiết bị được điều khiển
+  
+  uint32 mode = 4;  // 1: Add, 2: Edit, 3: Delete
+}
+
+// Phản hồi về kịch bản
+message SceneTriggerClientResponse {
+  string sceneId = 1;  // sceneId
+  StatusCode statusCode = 1000;
+}
+
+/* Thiết bị động cơ rèm cửa */
+// Nhận được lệnh điều khiển động cơ rèm cửa
+message CurtainClientRequest {
+  uint32 percent                    = 1;  // Phần trăm 
+  CurtainControlState controlState  = 2;  // 1: Close, 2: Stop, 3: Open
+  string hardwareId                 = 3;  // hardwareId của thiết bị
+}
+
+// Phản hồi lệnh điều khiển rèm cửa
+message CurtainClientResponse {
+  uint32 percent    = 1;  // Phần trăm
+  string deviceId   = 2;  // deviceId của thiết bị
+
+  StatusCode statusCode = 1000;
+}
+
+// Đăng ký thiết bị cho touch Panel
+message TouchPanelChangeComponentClientRequest {
+  string touchPanelId           = 1;
+  string componentId            = 2;
+  uint32 index                  = 3;
+  TouchPanelComponentType type  = 4;
+  uint32 activeMap              = 5;
+  string name                   = 6;
+  uint32 mode                   = 7;  // 1: Add, 2: Edit, 3: Delete
+}
+
+// Điều khển Switcher trên Touch Panel
+message TouchPanelControlSwitcherClientRequest {
+  string touchPanelId         = 1;
+  string switcherId           = 2;
+  uint32 switcher             = 3;
+  PowerState powerState       = 4;
+}
+
+message TouchPanelUpdateSwitcherClientRequest {
+  string touchPanelId               = 1;
+  string switcherId                 = 2;
+  uint32 index                      = 3;
+  uint32 activeMap                  = 4;
+  string name                       = 5;
+  ConnectionState connectionState   = 6;
+}
+
+message TouchPanelControlCurtainSwitcherClientRequest {
+  string touchPanelId               = 1;
+  string curtainSwitcherId          = 2;
+  uint32 percentIn                  = 3;
+  uint32 percentOut                 = 4;
+}
+
+message TouchPanelUpdateCurtainSwitcherClientRequest {
+  string touchPanelId               = 1;
+  string curtainSwitcherId          = 2;
+  string name                       = 3;
+  ConnectionState connectionState   = 4;
+}
+
+message TouchPanelUpdateSceneClientRequest {
+  string touchPanelId         = 1;
+  string sceneId              = 2;
+  string name                 = 3;
+}
+
+message TouchPanelControlLedDriverClientRequest {
+  string touchPanelId         = 1;
+  string ledDriverId          = 2;
+  PowerState powerState       = 3;
+  int32 brightnessPercent     = 4;
+}
+
+message TouchPanelUpdateLedDriverClientRequest {
+  string touchPanelId               = 1;
+  string ledDriverId                = 2;
+  string name                       = 3;
+  ConnectionState connectionState   = 4;
+}
+
+/***** Đóng gói messages *****/
+/* Thiết bị kết nối wifi Devices */
+message DeviceClientMessage {
+  ForceUpdateFirmwareDeviceClientRequest forceUpdateFirmwareDeviceClientRequest   = 1;
+  ForceUpdateFirmwareDeviceClientResponse forceUpdateFirmwareDeviceClientResponse = 2;
+  UpdateDeviceClientRequest updateDeviceClientRequest                             = 3;
+  UpdateDeviceClientResponse updateDeviceClientResponse                           = 4;
+  UpdateWSEndpointClientRequest updateWSEndpointClientRequest                     = 5;
+  UpdateWSEndpointClientResponse updateWSEndpointClientResponse                   = 6;
+  DeleteDeviceClientRequest deleteDeviceClientRequest                             = 7;
+  DeleteDeviceClientResponse deleteDeviceClientResponse                           = 8;
+}
+
+/* Thiết bị Công tắc */
+message SwitcherClientMessage {
+  GetSwitchersClientRequest getSwitchersClientRequest   = 1;
+  GetSwitchersClientResponse getSwitchersClientResponse = 2;
+
+  GetSwitcherClientRequest getSwitcherClientRequest   = 3;
+  GetSwitcherClientResponse getSwitcherClientResponse = 4;
+
+  GetLogSwitcherClientRequest getLogSwitcherClientRequest   = 5;
+  GetLogSwitcherClientResponse getLogSwitcherClientResponse = 6;
+
+  SwitcherClientRequest switcherClientRequest   = 7;
+  SwitcherClientResponse switcherClientResponse = 8;
+
+  AddSwitcherScheduleClientRequest addSwitcherScheduleClientRequest   = 9;
+  AddSwitcherScheduleClientResponse addSwitcherScheduleClientResponse = 10;
+
+  UpdateSwitcherScheduleClientRequest updateSwitcherScheduleClientRequest   = 11;
+  UpdateSwitcherScheduleClientResponse updateSwitcherScheduleClientResponse = 12;
+
+  DeleteSwitcherScheduleClientRequest deleteSwitcherScheduleClientRequest   = 13;
+  DeleteSwitcherScheduleClientResponse deleteSwitcherScheduleClientResponse = 14;
+
+  UpdateSwitcherClientRequest updateSwitcherClientRequest   = 15;
+  UpdateSwitcherClientResponse updateSwitcherClientResponse = 16;
+
+  UpdateSwitcherState updateSwitcherState = 17;
+}
+
+/* Thiết bị rèm cửa */
+message CurtainSwitcherClientMessage {
+  CurtainSwitcherClientRequest curtainSwitcherClientRequest   = 1;
+  CurtainSwitcherClientResponse curtainSwitcherClientResponse = 2;
+
+  AddCurtainSwitcherScheduleClientRequest addCurtainSwitcherScheduleClientRequest   = 3;
+  AddCurtainSwitcherScheduleClientResponse addCurtainSwitcherScheduleClientResponse = 4;
+
+  UpdateCurtainSwitcherScheduleClientRequest updateCurtainSwitcherScheduleClientRequest   = 5;
+  UpdateCurtainSwitcherScheduleClientResponse updateCurtainSwitcherScheduleClientResponse = 6;
+
+  DeleteCurtainSwitcherScheduleClientRequest deleteCurtainSwitcherScheduleClientRequest   = 7;
+  DeleteCurtainSwitcherScheduleClientResponse deleteCurtainSwitcherScheduleClientResponse = 8;
+}
+
+/* Điều hòa */
+message AirConditionerClientMessage {
+  AirConditionerClientRequest airConditionerClientRequest               = 1;
+  AirConditionerClientResponse airConditionerClientResponse             = 2;
+  GetAirConditionerClientRequest getAirConditionerClientRequest         = 3;
+  GetAirConditionerClientResponse getAirConditionerClientResponse       = 4;
+  AirConditionerAddIndoorsRequest airConditionerAddIndoorsRequest       = 5;
+  AirConditionerAddIndoorsResponse airConditionerAddIndoorsResponse     = 6;
+  AirConditionerRemoveIndoorRequest airConditionerRemoveIndoorRequest   = 7;
+  AirConditionerRemoveIndoorResponse airConditionerRemoveIndoorResponse = 8;
+}
+
+/* Thiết bị Remote */
+message RemoteClientMessage {
+  SendCommandRemoteClientRequest sendCommandRemoteClientRequest   = 1;
+  SendCommandRemoteClientResponse sendCommandRemoteClientResponse = 2;
+
+  LearnCommandRemoteClientRequest learnCommandRemoteClientRequest   = 3;
+  LearnCommandRemoteClientResponse learnCommandRemoteClientResponse = 4;
+
+  ControlRemoteACCommandClientRequest controlRemoteACCommandClientRequest = 5;
+  ControlRemoteACCommandClientResponse controlRemoteACCommandClientResponse = 6;
+}
+
+/* Events runtime */
+message OnChangedClientMessage {
+  MeterOnChangedClientResponse meterOnChangedClientResponse                                                     = 1;
+  SwitcherOnChangedClientResponse switcherOnChangedClientResponse                                               = 2;
+  CurtainSwitcherOnChangedClientResponse curtainSwitcherOnChangedClientResponse                                 = 3;
+  AirConditionerOnChangedClientResponse airConditionerOnChangedClientResponse                                   = 4;
+  ProgressUpdateFirmwareOnChangedDeviceClientResponse progressUpdateFirmwareOnChangedDeviceClientResponse       = 5;
+  DeviceOnChangedDeviceClientResponse deviceOnChangedDeviceClientResponse                                       = 6;
+  MotionOnChangedClientResponse motionOnChangedClientResponse                                                   = 7;
+  HomekitOnChangedClientResponse homekitOnChangedClientResponse                                                 = 8;
+  ButtonOnChangedClientResponse buttonOnChangedClientResponse                                                   = 9;
+  DebugLoggingResponse debugLoggingResponse                                                                     = 10;  // Kênh log debug của thiết bị.
+  LedDriverOnChangedClientResponse ledDriverOnChangedClientResponse                                             = 11;
+  EnvironmentOnchangedClientResponse environmentOnchangedClientResponse                                         = 12;
+  SmartPlugOnchangedClientResponse smartPlugOnchangedClientResponse                                             = 13;
+  CurtainOnChangedClientResponse curtainOnChangedClientResponse                                                 = 14;
+  TouchPanelControlSwitchOnChangedClientResponse touchPanelControlSwitchOnChangedClientResponse                 = 15;
+  TouchPanelControlCurtainSwitchOnChangedClientResponse touchPanelControlCurtainSwitchOnChangedClientResponse   = 16;
+  TouchPanelControlSceneOnChangedClientResponse touchPanelControlSceneOnChangedClientResponse                   = 17;
+  TouchPanelControlLedDriverOnChangedClientResponse touchPanelControlLedDriverOnChangedClientResponse           = 18;
+  TouchPanelRequestComponentStateOnChangedClientResponse touchPanelRequestComponentStateOnChangedClientResponse = 19; 
+}
+
+/* Thiết bị cảm biến chuyển động */
+message MotionClientMessage {
+  MotionClientRequest motionClientRequest   = 1;
+  MotionClientResponse motionClientResponse = 2;
+
+  UpdateMotionState updateMotionState       = 3;
+}
+
+/* Kịch bản */
+message SceneClientMessage {
+  SceneClientRequest sceneClientRequest   = 1;
+  SceneClientResponse sceneClientResponse = 2;
+  SceneGroupClientRequest sceneGroupClientRequest = 3;
+}
+
+/* Led Driver */
+message LedDriverClientMessage {
+  LedDriverClientRequest ledDriverClientRequest   = 1;
+  LedDriverClientResponse ledDriverClientResponse = 2;
+}
+
+/* Thiết bị đọc đồng hồ điện nước */
+message MeterClientMessage {
+  MeterClientRequest meterClientRequest   = 1;
+  MeterClientResponse meterClientResponse = 2;
+  MeterClientConfirm MeterClientConfirm   = 3;
+}
+
+message HomekitClientMessage {
+  SetHomekitModeClientRequest setHomekitModeClientRequest   = 1;
+  SetHomekitModeClientResponse setHomekitModeClientResponse = 2;
+}
+
+/* Kịch bản điều khiển Trigger */
+message SceneTriggerClientMessage {
+  SceneTriggerClientRequest sceneTriggerClientRequest   = 1;
+  SceneTriggerClientResponse sceneTriggerClientResponse = 2;
+}
+
+/* Thiết bị động cơ rèm cửa */
+message CurtainClientMessage {
+  CurtainClientRequest curtainClientRequest   = 1;
+  CurtainClientResponse curtainClientResponse = 2;
+}
+
+/* Thiết bị Touch Panel */
+message TouchPanelClientMessage {
+  TouchPanelChangeComponentClientRequest touchPanelChangeComponentClientRequest                 = 1;
+  TouchPanelControlSwitcherClientRequest touchPanelControlSwitcherClientRequest                 = 2;
+  TouchPanelUpdateSwitcherClientRequest touchPanelUpdateSwitcherClientRequest                   = 3;
+  TouchPanelControlCurtainSwitcherClientRequest touchPanelControlCurtainSwitcherClientRequest   = 4;
+  TouchPanelUpdateCurtainSwitcherClientRequest touchPanelUpdateCurtainSwitcherClientRequest     = 5;
+  TouchPanelUpdateSceneClientRequest touchPanelUpdateSceneClientRequest                         = 6;
+  TouchPanelControlLedDriverClientRequest touchPanelControlLedDriverClientRequest               = 7;
+  TouchPanelUpdateLedDriverClientRequest touchPanelUpdateLedDriverClientRequest                 = 8;
+}
+
+/* Client Message */
+message ClientMessage {
+  /* Thiết bị kết nối wifi Devices */
+  DeviceClientMessage deviceClientMessage = 1;
+
+  /* Thiết bị Công tắc */
+  SwitcherClientMessage switcherClientMessage = 2;
+
+  /* Thiết bị rèm cửa */
+  CurtainSwitcherClientMessage curtainSwitcherClientMessage = 3;
+
+  /* Điều hòa */
+  AirConditionerClientMessage airConditionerClientMessage = 4;
+
+  /* Thiết bị Remote */
+  RemoteClientMessage remoteClientMessage = 5;
+
+  /* Events runtime */
+  OnChangedClientMessage onChangedClientMessage = 6;
+
+  /* Thiết bị Motion */
+  MotionClientMessage motionClientMessage = 7;
+
+  /* Kịch bản */
+  SceneClientMessage sceneClientMessage = 8;
+
+  /* Led driver */
+  LedDriverClientMessage ledDriverClientMessage = 9;
+
+  /* Thiết bị đọc đồng hồ điện nước */
+  MeterClientMessage meterClientMessage = 10;
+
+  /* Thiết bị homekit gateway */
+  HomekitClientMessage homekitClientMessage = 11;
+
+  /* Thiết bị điều khiển */
+  SceneTriggerClientMessage sceneTriggerClientMessage = 12;
+
+  /* Thiết bị động cơ rèm cửa */
+  CurtainClientMessage curtainClientMessage = 13;
+
+  /* Thiết bị Touch Panel */
+  TouchPanelClientMessage touchPanelClientMessage = 14;
+}

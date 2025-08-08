@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "complex": "c",
+        "locale": "c",
+        "__locale": "c",
+        "periph_ota.h": "c",
+        "cstdlib": "c",
+        "app_config.h": "c",
+        "md5.h": "c",
+        "base64.h": "c",
+        "periph_mesh_ota.h": "c",
+        "md5_hash.h": "c"
+    },
+    "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, TabWidth: 4, ColumnLimit: 200, DerivePointerAlignment: false, PointerAlignment: Right, AllowShortIfStatementsOnASingleLine: true, CompactNamespaces: true, IndentCaseLabels: true, AlignConsecutiveDeclarations: true, AlignConsecutiveMacros: true, BreakBeforeBraces: Attach }",
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true, // Tự động format khi lưu
+}

@@ -1,0 +1,239 @@
+menu "Firmware Configuration"
+
+
+config WIFI_SSID
+    string "WiFi SSID"
+    default "myssid"
+    help
+	   SSID (network name) for the example to connect to.
+
+config WIFI_PASSWORD
+    string "WiFi Password"
+    default "mypassword"
+    help
+	   WiFi password (WPA or WPA2) for the example to use.
+
+config DEVELOPMENT_MODE
+    bool "Enable development mode"
+    default n
+    help
+        Enable development mode
+
+config POWER_SAVE
+    bool "Enable power save"
+    default n
+    help
+        Enable power save
+
+config WIFI_POWER_SAVE
+    bool "Enable WiFi power save"
+    depends on POWER_SAVE
+    default n
+    help
+        Enable WiFi power save
+
+config MONITOR_STATS
+    bool "Enable print montior stats"
+    default n
+    help
+        Enable print montior stats
+
+choice DEVICE_TYPE
+    prompt "Select device type"
+    default DEVICE_TYPE_TOUCH
+    help
+        Device type
+
+config DEVICE_TYPE_TOUCH
+    bool "TOUCH Switch device"
+config DEVICE_TYPE_TOUCH_CURTAIN
+    bool "TOUCH Curtain device"
+config DEVICE_TYPE_REMOTE_GATEWAY
+    bool "Remote Gateway device"
+config DEVICE_TYPE_THERMOSTAT
+    bool "Thermostat device"
+config DEVICE_TYPE_PIR
+    bool "PIR motion detect device"
+endchoice
+
+config DEVICE_SIMULATOR
+    bool "Enable simulator data for Aircond"
+    depends on DEVICE_TYPE_REMOTE_GATEWAY || DEVICE_TYPE_THERMOSTAT
+    default n
+    help
+        Enable simulator data for Aircond
+
+
+choice DEVICE_HARDWARE_REVERSION
+    prompt "Device hardware version"
+    default DEVICE_HARDWARE_REVERSION1
+    help
+        Device hardware version
+
+config DEVICE_HARDWARE_REVERSION1
+    bool "Device hardware version 1"
+config DEVICE_HARDWARE_REVERSION2
+    bool "Device hardware version 2, with DAC"
+    depends on DEVICE_TYPE_TOUCH || DEVICE_TYPE_TOUCH_CURTAIN || DEVICE_TYPE_REMOTE_GATEWAY
+config DEVICE_HARDWARE_REVERSION3
+    bool "Device hardware version 3, with Mesh, without MTCH"
+    depends on DEVICE_TYPE_TOUCH || DEVICE_TYPE_TOUCH_CURTAIN
+endchoice
+
+config DISABLE_AUTO_DETECT_HARDWARE
+    bool "Disable auto detect hardware"
+    default n
+    help
+        Disable auto detect hardware
+
+
+config TOUCH_DAC_VALUE
+    int "Default touch DAC value"
+    depends on DEVICE_HARDWARE_REVERSION2
+    default 130
+    help
+        Default touch dac value
+
+choice TOUCH_FEATURE
+    prompt "Touch feature"
+    default TOUCH_NORMAL
+    depends on DEVICE_TYPE_TOUCH
+    depends on (DEVICE_HARDWARE_REVERSION1 || DISABLE_AUTO_DETECT_HARDWARE)
+    help
+        Touch feature
+
+config TOUCH_NORMAL
+    bool "Normal Touch"
+config TOUCH_HEATER
+    bool "Heater touch"
+endchoice
+
+config TOUCH_PAD_NUM
+    int "Number of touch pads"
+    depends on DISABLE_AUTO_DETECT_HARDWARE
+    depends on DEVICE_TYPE_TOUCH
+    default 1
+    range 1 6
+    help
+        Number of touch pads
+
+config ENABLE_HOMEKIT_MODE
+    bool "Enable homekit mode"
+    default y
+    help
+        Enable/Disable device to switch to homekit mode
+
+choice TOUCH_BOOTUP_STATE
+    prompt "Touch bootup state"
+    default TOUCH_BOOTUP_STATE_OFF
+    depends on DEVICE_TYPE_TOUCH
+    help
+        Touch bootup state
+
+config TOUCH_BOOTUP_STATE_OFF
+    bool "Touch bootup state OFF"
+config TOUCH_BOOTUP_STATE_ON
+    bool "Touch bootup state ON"
+config TOUCH_BOOTUP_STATE_KEEP_OLD
+    bool "Touch bootup state KEEP_OLD"
+endchoice
+
+
+config CURTAIN_BAUD
+    int "Curtain device baudrate"
+    depends on CURTAIN_TOUCH
+    default 115200
+    help
+        Curtain device baudrate
+
+choice GATEWAY_FEATURE
+    prompt "GATEWAY feature"
+    default GATEWAY_FULL_PHY_UART
+    depends on DEVICE_TYPE_REMOTE_GATEWAY
+    depends on DISABLE_AUTO_DETECT_HARDWARE
+    help
+        GATEWAY feature (Conditioner, Temp, humidity, IR, RF)
+
+config GATEWAY_FULL_PHY_UART
+    bool "Full features of gateway with UART physic"
+config GATEWAY_FULL_PHY_SPI
+    bool "Full features of gateway with SPI physic"
+config GATEWAY_FULL_PHY_HOMEBUS
+    bool "Full features of gateway with HOMEBUS physic"
+config GATEWAY_ONLY_IR
+    bool "Gateway only IR"
+config GATEWAY_ONLY_IR_RF
+    bool "Gateway with IR and RF"
+config GATEWAY_ONLY_IR_RF_SENSOR
+    bool "Gateway with IR, RF and sensor"
+endchoice
+
+
+config USING_FADE_EFFECT
+    bool "Enable using fade effect"
+    default y
+    help
+        Enable using fade effect
+
+config WEBSOCKET_ACCESS_KEY
+    string "Default Websocket ACCESS_KEY"
+    default ""
+    help
+        Default Websocket Access key
+config WEBSOCKET_ACCESS_ID
+    string "Default Websocket ACCESS_ID"
+    default ""
+    help
+        Default Websocket Access ID
+
+choice COMPRESS_DATA_BUFFER
+    prompt "Compress data buffer"
+    default NONE_USE_COMPRESSING
+    depends on DEVICE_TYPE_REMOTE_GATEWAY
+    help
+        Compress data buffer
+
+config ALWAYS_USE_COMPRESSING
+    bool "Always use compressing"
+config COMPRESS_ONLY_ON_LEARNING_IR
+    bool "Only when start learning IR"
+config NONE_USE_COMPRESSING
+    bool "Not use compressing"
+endchoice
+
+config HARDCODE_DETECT_HARDWARE
+    # depends on DEVELOPMENT_MODE
+    bool "Enable hardcode detect hardware"
+    default n
+
+menu "Select level of hardcode pins"
+    depends on HARDCODE_DETECT_HARDWARE
+
+config HARDCODE_HIGH_PIN_0
+    bool "HIGH level pin 0"
+    default n
+config HARDCODE_HIGH_PIN_1
+    bool "HIGH level pin 1"
+    default n
+config HARDCODE_HIGH_PIN_2
+    bool "HIGH level pin 2"
+    default n
+
+endmenu
+
+choice TRIPLE_FAST_TAP_ACTION
+    prompt "Select triple tap action after entering config mode"
+    default TRIPLE_FAST_RESET_USER_CONFIG
+    help
+        Select triple tap action after entering config mode
+config TRIPLE_FAST_TAP_JOIN_GW
+    depends on ENABLE_HOMEKIT_MODE
+    bool "Attemp to find gateway"
+config TRIPLE_FAST_TAP_RESTART
+    bool "Restart device"
+config TRIPLE_FAST_RESET_USER_CONFIG
+    bool "reset user config"
+endchoice
+
+endmenu
+

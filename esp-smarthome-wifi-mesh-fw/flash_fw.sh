@@ -1,0 +1,1 @@
+esptool.py --chip esp32 --port /dev/tty.SLAB_USBtoUART --baud 2000000 --before default_reset --after hard_reset write_flash -z --flash_mode dio --flash_freq 40m --flash_size detect 0x10000 esp-mesh-touch-fw-encrypted.bin 0x8000 partitions-encrypted.bin 0x0 bootloader-reflash-digest-encrypted.bin 0xe000 ota_data_initial-encrypted.bin

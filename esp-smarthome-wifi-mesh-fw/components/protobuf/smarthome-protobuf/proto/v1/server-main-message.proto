@@ -1,0 +1,31 @@
+// Sử dụng proto3
+syntax = "proto3";
+
+/***** Optimize *****/
+option java_package = "com.sunshine.smarthome.server.message.protobuf";
+option java_outer_classname = "MainBuf";
+
+/***** Import messages *****/
+import "server-message.proto";
+import "client-message.proto";
+import "mesh-message.proto";
+
+message MessageHeader {
+  string accessToken = 1;
+  // user info
+  string userId = 2;
+  // device info
+  string deviceId   = 3;
+  string hardwareId = 4;
+}
+
+message MainMessage {
+  ServerMessage serverMessage = 1;
+  ClientMessage clientMessage = 2;
+  MeshMessage meshMessage = 3;
+}
+
+message MainMessageContainer {
+  MessageHeader messageHeader = 1;
+  MainMessage mainMessage     = 2;
+}

@@ -1,0 +1,49 @@
+stages:
+  - build
+
+before_script:
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh-keyscan git.sunshinetech.vn >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+  - git config --global user.email tienta@sunshinegroup.vn
+  - git config --global user.name "tienta"
+
+.build: &build
+  stage: build
+  image: git.sunshinetech.vn:9418/devops/embedded/esp-idf:${LIB_VER}
+  script:
+    - cd examples/esp_peripherals_app
+    - make defconfig all -j4
+    - cd ../..
+    - git clone git@git.sunshinetech.vn:dev/common-libraries/firmware-lib/esp_peripheral_lib.git
+    - cd esp_peripheral_lib
+    - git checkout -b ${LIB_VER}
+    - if (($(git ls-remote --heads git@git.sunshinetech.vn:dev/common-libraries/firmware-lib/esp_peripheral_lib.git ${LIB_VER} | wc -l) == 1)); then git pull origin ${LIB_VER} ; fi
+    - cd ..
+    - mkdir -p ./esp_peripheral_lib/include ./esp_peripheral_lib/lib
+    - cp ./examples/esp_peripherals_app/build/esp_peripherals_src/libesp_peripherals_src.a ./esp_peripheral_lib/libesp_peripherals.a
+    - cp -rf ./include/* ./esp_peripheral_lib/include/
+    - cp -rf ./lib/* ./esp_peripheral_lib/lib/
+    - rm -rf ./esp_peripheral_lib/lib/*/*.c
+    - cp ./component.mk.txt ./esp_peripheral_lib/component.mk
+    - cp ./Kconfig ./esp_peripheral_lib/Kconfig
+    - cd esp_peripheral_lib
+    - git add .
+    - git commit -m "update"
+    - git push origin ${LIB_VER}
+  only:
+    - master
+
+build:release-v3.3:
+  <<: *build
+  variables:
+    LIB_VER: release-v3.3
+
+build:sst-93a8603-4.1:
+  <<: *build
+  variables:
+    LIB_VER: sst-93a8603-4.1

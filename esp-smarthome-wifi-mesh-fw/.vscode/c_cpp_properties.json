@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "macOS",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/build/config/*"
+            ],
+            "defines": [],
+            "macFrameworkPath": [],
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

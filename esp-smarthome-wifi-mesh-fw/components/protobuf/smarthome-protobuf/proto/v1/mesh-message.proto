@@ -1,0 +1,40 @@
+// Sử dụng proto3
+syntax = "proto3";
+import "common-message.proto";
+/***** Import messages *****/
+option java_package = "com.sunshine.smarthome.server.message.protobuf";
+option java_outer_classname = "MeshBuf";
+
+message MeshRegisterRequest {
+  string hardwareId = 1;
+  string model = 2;
+  string hwVersion = 3;
+  string regToken = 4;
+  string deviceToken = 5;
+  string deviceId = 6;
+  string fwVersion = 7;
+}
+
+message MeshRegisterResponse {
+  string hardwareId = 1;
+  string deviceToken = 2;
+  string wsEnpoint = 3;
+  DataType dataType = 4;
+  StatusCode statusCode = 1000;
+}
+
+message MeshOnChangedMessage {
+  string hardwareId = 1;
+  uint32 serverConnected = 2;
+}
+
+message MeshDisconnectMessage {
+  uint32 rootChannel = 1;
+}
+
+message MeshMessage {
+  MeshRegisterRequest meshRegisterRequest = 1;
+  MeshRegisterResponse meshRegisterResponse = 2;
+  MeshOnChangedMessage meshOnChangedMessage = 3;
+  MeshDisconnectMessage meshDisconnectMessage = 4;
+}

@@ -1,0 +1,21 @@
+menu "ESP Peripherals"
+
+config ENABLE_PERIPH_PPP
+    bool "Enable PPP Peripheral"
+    default n
+    help
+        Enable PPP Peripheral
+
+config ENABLE_PERIPH_WEB
+    bool "Enable WEB Peripheral"
+    default n
+    help
+        Enable WEB Peripheral
+
+config ENABLE_PERIPH_BLUFI
+    bool "Enable Blufi Peripheral"
+    default n
+    help
+        Enable Blufi Peripheral
+
+endmenu

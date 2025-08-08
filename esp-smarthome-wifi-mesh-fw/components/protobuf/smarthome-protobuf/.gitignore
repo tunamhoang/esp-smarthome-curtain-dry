@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+__MACOSX
+
+vscode
+
+builds
+
+.idea
+
+proto_message_dart/.dart_tool

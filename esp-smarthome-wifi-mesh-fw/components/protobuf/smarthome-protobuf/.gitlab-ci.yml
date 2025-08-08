@@ -1,0 +1,66 @@
+image: trungdq1/docker-proto-generator:latest
+
+stages:
+  - tag
+  - build
+  - deploy
+
+before_script:
+  - git config --global user.email "${CI_EMAIL}"
+  - git config --global user.name "${CI_USERNAME}"
+  - "which ssh-agent || ( apt-get update -qy && apt-get install openssh-client -qqy )"
+  - eval `ssh-agent -s`
+  - echo "${SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo "$SSH_PUBLIC_KEY" >> ~/.ssh/id_rsa.pub
+  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  - git remote rm origin && git remote add origin git@git.sunshinetech.vn:$CI_PROJECT_PATH.git
+
+generate:
+  artifacts:
+    when: on_success
+    expire_in: 3 day
+    paths:
+      - build
+      - proto_message_dart/lib/messages
+  stage: build
+  script:
+    - . ./generate.sh all
+  only:
+    changes:
+      - proto/**/*
+  except:
+    - master
+  tags:
+    - hcm-share-docker-runner-1
+
+deploy:
+  stage: deploy
+  dependencies:
+    - generate
+  script:
+    - git diff -U0 --no-color --name-only HEAD~2 '**/*.proto' | clang-format-diff-10 -p1 -i # reformat proto file before generate new one
+    - git add -f .
+    - git commit -m "Generate new protobuf $CI_COMMIT_SHORT_SHA [skip ci]" || echo "No changes, nothing to commit!"
+    - git push origin HEAD:$CI_COMMIT_REF_NAME --push-option=ci.skip || true
+  tags:
+    - hcm-share-docker-runner-1
+  only:
+    - develop
+
+version:
+  stage: tag
+  variables:
+    TAG_VERSION: "${CI_COMMIT_MESSAGE}"
+  script:
+    - . ./gen_semver.sh
+    - git tag -a $NEW_VERSION -m "Version created by gitlab-ci" # $NER_VERSION varialbe is ccreate in gen-semver.script
+    - git push origin $NEW_VERSION --push-option=ci.skip
+  tags:
+    - hcm-share-docker-runner-1
+  only:
+    refs:
+      - master
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^(\[tag\])(\*)?/
