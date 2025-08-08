@@ -837,7 +837,15 @@ esp_err_t periph_monitor_process_events(audio_event_iface_msg_t *event, void *co
             } else if (event->cmd == PERIPH_MESH_CURTAIN_REQUEST) {
                 LOGI(TAG, "PERIPH_MESH_CURTAIN_REQUEST");
                 CurtainSwitcherClientRequest *curtainReq = (CurtainSwitcherClientRequest *)event->data;
-                motor_pos_t                   resp_pos = periph_motor_set_pos(periph_monitor->motor_periph, curtainReq->percentin, curtainReq->percentout);
+                int                           in_val  = -1;
+                int                           out_val = -1;
+                if (curtainReq->percentin) {
+                    in_val = curtainReq->percentin->value;
+                }
+                if (curtainReq->percentout) {
+                    out_val = curtainReq->percentout->value;
+                }
+                motor_pos_t resp_pos = periph_motor_set_pos(periph_monitor->motor_periph, in_val, out_val);
                 esp_periph_send_event(g_periph_monitor, MONITOR_CURTAIN_EVENT, (void *)&resp_pos.in_pos, (int)resp_pos.out_pos);
             } else if (event->cmd == PERIPH_MESH_PARENT_CONNECTED || event->cmd == PERIPH_MESH_WS_DISCONNECTED) {
                 periph_monitor->next_state = MONITOR_WAITING_WEBSOCKET;
