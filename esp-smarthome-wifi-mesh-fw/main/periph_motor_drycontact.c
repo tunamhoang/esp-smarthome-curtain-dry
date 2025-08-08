@@ -163,17 +163,21 @@ motor_pos_t periph_motor_drycontact_set_pos(motor_drycontact_handle_t motor_dryc
         motor_drycontact_control(single_a_pin, single_b_pin, LOW, val_in > 50 ? HIGH : LOW);
         LOGI(TAG, "Single curtain position: %d", motor_drycontact_handle->position.in_pos);
     } else if (motor_drycontact_handle->hw.drycontact.type == MOTOR_TYPE_DOUBLE) {
-        motor_drycontact_handle->position.in_pos = val_in > 50 ? 100 : 0;
-        motor_drycontact_handle->position.out_pos = val_out > 50 ? 100 : 0;
-        if (val_in > 50)
-            periph_motor_drycontact_control(motor_drycontact_handle, MOTOR_IN_CTRL_OPEN);
-        else
-            periph_motor_drycontact_control(motor_drycontact_handle, MOTOR_IN_CTRL_CLOSE);
-        vTaskDelay(200 / portTICK_PERIOD_MS);
-        if (val_out > 50)
-            periph_motor_drycontact_control(motor_drycontact_handle, MOTOR_OUT_CTRL_OPEN);
-        else
-            periph_motor_drycontact_control(motor_drycontact_handle, MOTOR_OUT_CTRL_CLOSE);
+        if (val_in >= 0) {
+            motor_drycontact_handle->position.in_pos = val_in > 50 ? 100 : 0;
+            if (val_in > 50)
+                periph_motor_drycontact_control(motor_drycontact_handle, MOTOR_IN_CTRL_OPEN);
+            else
+                periph_motor_drycontact_control(motor_drycontact_handle, MOTOR_IN_CTRL_CLOSE);
+            vTaskDelay(200 / portTICK_PERIOD_MS);
+        }
+        if (val_out >= 0) {
+            motor_drycontact_handle->position.out_pos = val_out > 50 ? 100 : 0;
+            if (val_out > 50)
+                periph_motor_drycontact_control(motor_drycontact_handle, MOTOR_OUT_CTRL_OPEN);
+            else
+                periph_motor_drycontact_control(motor_drycontact_handle, MOTOR_OUT_CTRL_CLOSE);
+        }
         LOGI(TAG, "Double curtain position: %d (in) , %d (out)", motor_drycontact_handle->position.in_pos, motor_drycontact_handle->position.out_pos);
     }
     return motor_drycontact_handle->position;

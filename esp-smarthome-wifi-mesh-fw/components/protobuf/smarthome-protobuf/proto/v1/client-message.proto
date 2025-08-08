@@ -5,6 +5,7 @@ syntax = "proto3";
 option java_package         = "com.sunshine.smarthome.server.message.protobuf";
 option java_outer_classname = "ClientBuf";
 import "common-message.proto";
+import "google/protobuf/wrappers.proto";
 
 /***** Messages ClientRequest/ClientResponse của các Devices *****/
 /* Thiết bị kết nối wifi Devices */
@@ -197,15 +198,15 @@ message UpdateSwitcherState {
 /* Thiết bị rèm cửa */
 // Nhận được lệnh điều khiển rèm cửa
 message CurtainSwitcherClientRequest {
-  uint32 percentIn  = 1;  // Phần trăm hướng trong
-  uint32 percentOut = 2;  // Phần trăm hướng ngoài
+  google.protobuf.UInt32Value percentIn  = 1;  // Phần trăm hướng trong
+  google.protobuf.UInt32Value percentOut = 2;  // Phần trăm hướng ngoài
   string hardwareId = 3;  // hardwareId của thiết bị
 }
 
 // Phản hồi lệnh điều khiển rèm cửa
 message CurtainSwitcherClientResponse {
-  uint32 percentIn  = 1;  // Phần trăm hướng trong
-  uint32 percentOut = 2;  // Phần trăm hướng ngoài
+  google.protobuf.UInt32Value percentIn  = 1;  // Phần trăm hướng trong
+  google.protobuf.UInt32Value percentOut = 2;  // Phần trăm hướng ngoài
   string deviceId   = 3;  // deviceId của thiết bị
 
   StatusCode statusCode = 1000;
@@ -378,8 +379,8 @@ message SwitcherOnChangedClientResponse {
 // Dùng cho trường công tắc rèm cửa chủ động gửi trạng thái lên server
 // Phản hồi thông tin thay đổi trạng thái của điều hòa runtime
 message CurtainSwitcherOnChangedClientResponse {
-  uint32 percentIn  = 1;  // Phần trăm hướng trong
-  uint32 percentOut = 2;  // Phần trăm hướng ngoài
+  google.protobuf.UInt32Value percentIn  = 1;  // Phần trăm hướng trong
+  google.protobuf.UInt32Value percentOut = 2;  // Phần trăm hướng ngoài
   string deviceId   = 3;  // deviceId của thiết bị
 
   StatusCode statusCode = 1000;
@@ -500,8 +501,8 @@ message TouchPanelControlSwitchOnChangedClientResponse {
 message TouchPanelControlCurtainSwitchOnChangedClientResponse {
   string touchPanelId         = 1;
   string curtainSwitcherId    = 2;
-  uint32 percentIn            = 3;
-  uint32 percentOut           = 4;
+  google.protobuf.UInt32Value percentIn            = 3;
+  google.protobuf.UInt32Value percentOut           = 4;
 
   StatusCode statusCode = 1000;
 }

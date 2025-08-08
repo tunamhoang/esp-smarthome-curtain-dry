@@ -8,6 +8,7 @@ option java_outer_classname = "ServerBuf";
 /***** Import messages *****/
 import "common-message.proto";
 import "client-message.proto";
+import "google/protobuf/wrappers.proto";
 
 /***** Messages Request/Response của Server *****/
 /* Đăng nhập hệ thống */
@@ -703,16 +704,16 @@ message GetCurtainSwitcherStateServerRequest {
 
 // Phản hồi thông tin state của rèm cửa
 message GetCurtainSwitcherStateServerResponse {
-  uint32 percentIn      = 1;  // Phần trăm hướng trong
-  uint32 percentOut     = 2;  // Phần trăm hướng ngoài
+  google.protobuf.UInt32Value percentIn      = 1;  // Phần trăm hướng trong
+  google.protobuf.UInt32Value percentOut     = 2;  // Phần trăm hướng ngoài
   StatusCode statusCode = 1000;
 }
 
 // Nhận được lệnh điều khiển rèm cửa
 message CurtainSwitcherServerRequest {
   string deviceId   = 1;
-  uint32 percentIn  = 2;  // Phần trăm hướng trong
-  uint32 percentOut = 3;  // Phần trăm hướng ngoài
+  google.protobuf.UInt32Value percentIn  = 2;  // Phần trăm hướng trong
+  google.protobuf.UInt32Value percentOut = 3;  // Phần trăm hướng ngoài
 }
 
 // Phản hồi lệnh điều khiển rèm cửa
@@ -1468,8 +1469,8 @@ message SwitcherOnChangedServerResponse {
 // Phản hồi trạng thái rèm cửa runtime
 message CurtainSwitcherOnChangedServerResponse {
   string deviceId       = 1;  // Id của thiết bị để mobile update trạng thái
-  uint32 percentIn      = 2;  // Phần trăm hướng trong
-  uint32 percentOut     = 3;  // Phần trăm hướng ngoài
+  google.protobuf.UInt32Value percentIn      = 2;  // Phần trăm hướng trong
+  google.protobuf.UInt32Value percentOut     = 3;  // Phần trăm hướng ngoài
   StatusCode statusCode = 1000;
 }
 
@@ -2030,8 +2031,8 @@ message TouchPanelUpdateSwitcherServerRequest {
 message TouchPanelControlCurtainSwitcherServerRequest {
   string touchPanelId               = 1;
   string curtainSwitcherId          = 2;
-  uint32 percentIn                  = 3;
-  uint32 percentOut                 = 4;
+  google.protobuf.UInt32Value percentIn                  = 3;
+  google.protobuf.UInt32Value percentOut                 = 4;
 }
 
 message TouchPanelUpdateCurtainSwitcherServerRequest {
