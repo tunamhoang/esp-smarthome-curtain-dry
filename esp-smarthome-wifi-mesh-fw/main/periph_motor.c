@@ -91,7 +91,7 @@ motor_pos_t periph_motor_set_pos(esp_periph_handle_t periph_motor, int val_in, i
     motor_pos_t resp_pos = {0, 0};
     VALIDATE_MOTOR(periph_motor, resp_pos);
     periph_motor_t *motor_handle = esp_periph_get_data(periph_motor);
-    if ((val_in < 0 && val_in > 100) || (val_out < 0 && val_out > 100)) {
+    if (val_in < 0 || val_in > 100 || val_out < 0 || val_out > 100) {
         ESP_LOGE(TAG, "Position values error!!!");
         return resp_pos;
     }
