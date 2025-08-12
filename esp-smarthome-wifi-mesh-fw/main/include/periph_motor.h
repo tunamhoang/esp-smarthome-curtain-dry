@@ -87,6 +87,7 @@ typedef struct {
 typedef struct {
     motor_hw_t                      hw;
     motor_pos_t                     position;
+    motor_control_t                 last_control;
 } motor_drycontact_t;
 
 typedef motor_uart_t* motor_uart_handle_t;
