@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "app_utility.h"
 #include "driver/gpio.h"
@@ -161,7 +162,41 @@ _motor_uart_init_fail:
     return NULL;
 }
 
+static int control_to_uart(motor_uart_handle_t motor_uart_handle, motor_control_t ctrl) {
+    switch (ctrl) {
+        case MOTOR_SINGLE_CTRL_OPEN:
+        case MOTOR_SINGLE_CTRL_CLOSE:
+        case MOTOR_SINGLE_CTRL_STOP:
+            return motor_uart_handle->hw.uart.motor_uart_single_conn.uart_num;
+        case MOTOR_IN_CTRL_OPEN:
+        case MOTOR_IN_CTRL_CLOSE:
+        case MOTOR_IN_CTRL_STOP:
+            return motor_uart_handle->hw.uart.motor_uart_in_conn.uart_num;
+        case MOTOR_OUT_CTRL_OPEN:
+        case MOTOR_OUT_CTRL_CLOSE:
+        case MOTOR_OUT_CTRL_STOP:
+            return motor_uart_handle->hw.uart.motor_uart_out_conn.uart_num;
+        default:
+            return -1;
+    }
+}
+
+static bool is_opposite_cmd(motor_control_t prev, motor_control_t current) {
+    return (prev == MOTOR_SINGLE_CTRL_OPEN && current == MOTOR_SINGLE_CTRL_CLOSE) ||
+           (prev == MOTOR_SINGLE_CTRL_CLOSE && current == MOTOR_SINGLE_CTRL_OPEN) ||
+           (prev == MOTOR_IN_CTRL_OPEN && current == MOTOR_IN_CTRL_CLOSE) ||
+           (prev == MOTOR_IN_CTRL_CLOSE && current == MOTOR_IN_CTRL_OPEN) ||
+           (prev == MOTOR_OUT_CTRL_OPEN && current == MOTOR_OUT_CTRL_CLOSE) ||
+           (prev == MOTOR_OUT_CTRL_CLOSE && current == MOTOR_OUT_CTRL_OPEN);
+}
+
 esp_err_t periph_motor_uart_control(motor_uart_handle_t motor_uart_handle, motor_control_t control) {
+    if (is_opposite_cmd(motor_uart_handle->pre_control, control)) {
+        int uart_num = control_to_uart(motor_uart_handle, motor_uart_handle->pre_control);
+        motor_uart_control(uart_num, stop_cmd, 6);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
+        motor_uart_handle->pre_control = MOTOR_CTRL_NONE;
+    }
     switch (control) {
         case MOTOR_SINGLE_CTRL_OPEN:
             LOGI(TAG, "Open curtain!");

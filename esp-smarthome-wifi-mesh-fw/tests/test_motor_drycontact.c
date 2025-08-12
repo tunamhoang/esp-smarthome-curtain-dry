@@ -38,5 +38,21 @@ int main() {
     assert(gpio_in_calls == 0);
     assert(gpio_out_calls > 0);
 
+    // Test reversing direction on inner curtain: open then close
+    handle.position.in_pos = 0;
+    gpio_in_calls = 0;
+    handle.last_control = MOTOR_CTRL_NONE;
+    periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_OPEN);
+    periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_CLOSE);
+    assert(gpio_in_calls == 12);
+
+    // Test reversing direction on inner curtain: close then open
+    handle.position.in_pos = 100;
+    gpio_in_calls = 0;
+    handle.last_control = MOTOR_CTRL_NONE;
+    periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_CLOSE);
+    periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_OPEN);
+    assert(gpio_in_calls == 12);
+
     return 0;
 }
