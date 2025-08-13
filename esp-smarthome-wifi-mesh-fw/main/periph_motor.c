@@ -42,12 +42,13 @@ typedef struct {
 
 static esp_err_t _motor_init(esp_periph_handle_t periph) {
     periph_motor_t *periph_motor = esp_periph_get_data(periph);
+    esp_err_t ret = ESP_OK;
     if (periph_motor->physic == MOTOR_UART) {
-        _motor_uart_init(periph_motor->motor_uart_handle);
+        ret = _motor_uart_init(periph_motor->motor_uart_handle);
     } else if (periph_motor->physic == MOTOR_DRYCONTACT) {
-        _motor_drycontact_init(periph_motor->motor_drycontact_handle);
+        ret = _motor_drycontact_init(periph_motor->motor_drycontact_handle);
     }
-    return ESP_OK;
+    return ret;
 }
 
 static esp_err_t _motor_run(esp_periph_handle_t periph, audio_event_iface_msg_t *msg) { return ESP_OK; }
@@ -55,6 +56,14 @@ static esp_err_t _motor_run(esp_periph_handle_t periph, audio_event_iface_msg_t 
 static esp_err_t _motor_destroy(esp_periph_handle_t periph) {
     periph_motor_t *periph_motor = esp_periph_get_data(periph);
     vTaskDelay(2000 / portTICK_RATE_MS);
+    if (periph_motor->motor_drycontact_handle) {
+        free(periph_motor->motor_drycontact_handle);
+        periph_motor->motor_drycontact_handle = NULL;
+    }
+    if (periph_motor->motor_uart_handle) {
+        free(periph_motor->motor_uart_handle);
+        periph_motor->motor_uart_handle = NULL;
+    }
     free(periph_motor);
     g_periph = NULL;
     return ESP_OK;
