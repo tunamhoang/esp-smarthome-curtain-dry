@@ -3,4 +3,5 @@
 #include <stdint.h>
 typedef int BaseType_t;
 #define portTICK_PERIOD_MS 1
+#define portTICK_RATE_MS portTICK_PERIOD_MS
 #endif
