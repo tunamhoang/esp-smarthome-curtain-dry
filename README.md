@@ -1,4 +1,4 @@
-
+source ~/esp-idf/export.sh
 //Cách đóng gói firmware để gửi cho đối tác
 //Build firmware
 
