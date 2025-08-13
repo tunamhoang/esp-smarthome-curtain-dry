@@ -105,6 +105,23 @@ esp_err_t periph_motor_drycontact_control(motor_drycontact_handle_t motor_drycon
     gpio_num_t curtain_out_a_pin = motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.a_pin;
     gpio_num_t curtain_out_b_pin = motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.b_pin;
 
+    motor_type_t motor_type = motor_drycontact_handle->hw.drycontact.type;
+    bool single_cmd = control == MOTOR_SINGLE_CTRL_OPEN || control == MOTOR_SINGLE_CTRL_CLOSE ||
+                      control == MOTOR_SINGLE_CTRL_STOP;
+    bool double_cmd = control == MOTOR_IN_CTRL_OPEN || control == MOTOR_IN_CTRL_CLOSE ||
+                      control == MOTOR_IN_CTRL_STOP || control == MOTOR_OUT_CTRL_OPEN ||
+                      control == MOTOR_OUT_CTRL_CLOSE || control == MOTOR_OUT_CTRL_STOP;
+    if (control != MOTOR_CTRL_NONE) {
+        if (motor_type == MOTOR_TYPE_SINGLE && !single_cmd) {
+            LOGW(TAG, "Unsupported control %d for single motor", control);
+            return ESP_FAIL;
+        }
+        if (motor_type == MOTOR_TYPE_DOUBLE && !double_cmd) {
+            LOGW(TAG, "Unsupported control %d for double motor", control);
+            return ESP_FAIL;
+        }
+    }
+
     bool same = motor_drycontact_handle->last_control == control &&
                  (control == MOTOR_SINGLE_CTRL_OPEN || control == MOTOR_SINGLE_CTRL_CLOSE ||
                   control == MOTOR_IN_CTRL_OPEN || control == MOTOR_IN_CTRL_CLOSE ||
