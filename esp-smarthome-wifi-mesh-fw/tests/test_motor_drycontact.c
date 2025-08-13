@@ -4,12 +4,17 @@
 
 int gpio_in_calls = 0;
 int gpio_out_calls = 0;
+int gpio_fail_next = 0;
 
 int gpio_config(const gpio_config_t *cfg) { return 0; }
 int gpio_set_level(gpio_num_t pin, int level) {
+    if (gpio_fail_next) {
+        gpio_fail_next = 0;
+        return ESP_FAIL;
+    }
     if (pin == 1 || pin == 2) gpio_in_calls++;
     if (pin == 3 || pin == 4) gpio_out_calls++;
-    return 0;
+    return ESP_OK;
 }
 
 int main() {
@@ -72,6 +77,15 @@ int main() {
     periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_CLOSE);
     assert(gpio_in_calls == 8);
     assert(handle.last_control == MOTOR_IN_CTRL_STOP);
+
+    // Test error propagation on GPIO failure
+    handle.position.in_pos = 0;
+    handle.last_control = MOTOR_CTRL_NONE;
+    gpio_fail_next = 1;
+    esp_err_t err = periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_OPEN);
+    assert(err == ESP_FAIL);
+    assert(handle.last_control == MOTOR_CTRL_NONE);
+    assert(handle.position.in_pos == 0);
 
 
     return 0;
