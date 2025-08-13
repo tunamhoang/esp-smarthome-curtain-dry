@@ -20,6 +20,7 @@ typedef struct {
 int gpio_in_calls = 0;
 int gpio_out_calls = 0;
 int gpio_single_calls = 0;
+int gpio_fail_next = 0;
 
 int gpio_config(const gpio_config_t *cfg) { return 0; }
 int gpio_set_level(gpio_num_t pin, int level) {
@@ -193,19 +194,37 @@ int main() {
     periph_motor_drycontact_control(&single, MOTOR_SINGLE_CTRL_OPEN);
     assert(gpio_single_calls == 12);
 
+    // Test pressing same command stops motor: open then open
+    single.position.in_pos = 0;
+    gpio_single_calls = 0;
+    single.last_control = MOTOR_CTRL_NONE;
+    periph_motor_drycontact_control(&single, MOTOR_SINGLE_CTRL_OPEN);
+    periph_motor_drycontact_control(&single, MOTOR_SINGLE_CTRL_OPEN);
+    assert(gpio_single_calls == 8);
+    assert(single.last_control == MOTOR_SINGLE_CTRL_STOP);
+
+    // Test pressing same command stops motor: close then close
+    single.position.in_pos = 100;
+    gpio_single_calls = 0;
+    single.last_control = MOTOR_CTRL_NONE;
+    periph_motor_drycontact_control(&single, MOTOR_SINGLE_CTRL_CLOSE);
+    periph_motor_drycontact_control(&single, MOTOR_SINGLE_CTRL_CLOSE);
+    assert(gpio_single_calls == 8);
+    assert(single.last_control == MOTOR_SINGLE_CTRL_STOP);
+
     // Test unsupported command for double motor
     handle.last_control = MOTOR_CTRL_NONE;
     assert(periph_motor_drycontact_control(&handle, MOTOR_SINGLE_CTRL_OPEN) == ESP_FAIL);
     assert(handle.last_control == MOTOR_CTRL_NONE);
 
     // Test unsupported command for single motor
-    motor_drycontact_t single = (motor_drycontact_t){0};
-    single.hw.drycontact.type = MOTOR_TYPE_SINGLE;
-    single.hw.drycontact.motor_drycontact_single_conn.a_pin = 5;
-    single.hw.drycontact.motor_drycontact_single_conn.b_pin = 6;
-    single.last_control = MOTOR_CTRL_NONE;
-    assert(periph_motor_drycontact_control(&single, MOTOR_IN_CTRL_OPEN) == ESP_FAIL);
-    assert(single.last_control == MOTOR_CTRL_NONE);
+    motor_drycontact_t single2 = (motor_drycontact_t){0};
+    single2.hw.drycontact.type = MOTOR_TYPE_SINGLE;
+    single2.hw.drycontact.motor_drycontact_single_conn.a_pin = 5;
+    single2.hw.drycontact.motor_drycontact_single_conn.b_pin = 6;
+    single2.last_control = MOTOR_CTRL_NONE;
+    assert(periph_motor_drycontact_control(&single2, MOTOR_IN_CTRL_OPEN) == ESP_FAIL);
+    assert(single2.last_control == MOTOR_CTRL_NONE);
 
 
     return 0;
