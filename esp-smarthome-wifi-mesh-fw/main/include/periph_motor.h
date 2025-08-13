@@ -6,6 +6,8 @@
 #include "time.h"
 #include <sys/time.h>
 #include "esp_peripherals.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,6 +90,7 @@ typedef struct {
     motor_hw_t                      hw;
     motor_pos_t                     position;
     motor_control_t                 last_control;
+    TimerHandle_t                   control_timer;
 } motor_drycontact_t;
 
 typedef motor_uart_t* motor_uart_handle_t;
@@ -116,6 +119,7 @@ esp_err_t _motor_drycontact_init(motor_drycontact_handle_t motor_drycontact_hand
 esp_err_t periph_motor_drycontact_control(motor_drycontact_handle_t motor_drycontact_handle, motor_control_t control);
 motor_pos_t periph_motor_drycontact_set_pos(motor_drycontact_handle_t motor_drycontact_handle, int val_in, int val_out);
 esp_err_t periph_motor_drycontact_get_pos(motor_drycontact_handle_t motor_drycontact_handle, int* val_in, int* val_out);
+esp_err_t periph_motor_drycontact_destroy(motor_drycontact_handle_t motor_drycontact_handle);
 
 
 #ifdef __cplusplus

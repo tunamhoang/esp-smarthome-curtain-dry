@@ -56,13 +56,8 @@ static esp_err_t _motor_run(esp_periph_handle_t periph, audio_event_iface_msg_t 
 static esp_err_t _motor_destroy(esp_periph_handle_t periph) {
     periph_motor_t *periph_motor = esp_periph_get_data(periph);
     vTaskDelay(2000 / portTICK_RATE_MS);
-    if (periph_motor->motor_drycontact_handle) {
-        free(periph_motor->motor_drycontact_handle);
-        periph_motor->motor_drycontact_handle = NULL;
-    }
-    if (periph_motor->motor_uart_handle) {
-        free(periph_motor->motor_uart_handle);
-        periph_motor->motor_uart_handle = NULL;
+    if (periph_motor->physic == MOTOR_DRYCONTACT && periph_motor->motor_drycontact_handle != NULL) {
+        periph_motor_drycontact_destroy(periph_motor->motor_drycontact_handle);
     }
     free(periph_motor);
     g_periph = NULL;
