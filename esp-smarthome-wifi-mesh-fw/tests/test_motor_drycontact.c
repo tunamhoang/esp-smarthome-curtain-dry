@@ -2,6 +2,21 @@
 #include "periph_motor.h"
 #include "driver/gpio.h"
 
+#include <stdbool.h>
+
+esp_periph_handle_t esp_periph_create(int id, const char *name) { return NULL; }
+void esp_periph_set_data(esp_periph_handle_t periph, void *data) {}
+void *esp_periph_get_data(esp_periph_handle_t periph) { return periph; }
+void esp_periph_set_function(esp_periph_handle_t periph, void *init, void *run, void *destroy) {}
+bool esp_periph_validate(esp_periph_handle_t periph, int id) { return true; }
+
+typedef struct {
+    motor_type_t type;
+    motor_physic_t physic;
+    motor_uart_handle_t motor_uart_handle;
+    motor_drycontact_handle_t motor_drycontact_handle;
+} periph_motor_t;
+
 int gpio_in_calls = 0;
 int gpio_out_calls = 0;
 int gpio_single_calls = 0;
@@ -26,6 +41,10 @@ int main() {
     handle.hw.drycontact.motor_drycontact_out_conn.a_pin = 3;
     handle.hw.drycontact.motor_drycontact_out_conn.b_pin = 4;
 
+    periph_motor_t periph = {0};
+    periph.physic = MOTOR_DRYCONTACT;
+    periph.motor_drycontact_handle = &handle;
+
     // Test moving only inner curtain
     handle.position.in_pos = 0; handle.position.out_pos = 0;
     gpio_in_calls = gpio_out_calls = 0;
@@ -39,6 +58,24 @@ int main() {
     handle.position.in_pos = 100; handle.position.out_pos = 0;
     gpio_in_calls = gpio_out_calls = 0;
     periph_motor_drycontact_set_pos(&handle, -1, 100);
+    assert(handle.position.in_pos == 100);
+    assert(handle.position.out_pos == 100);
+    assert(gpio_in_calls == 0);
+    assert(gpio_out_calls > 0);
+
+    // Test moving only inner curtain via public API
+    handle.position.in_pos = 0; handle.position.out_pos = 0;
+    gpio_in_calls = gpio_out_calls = 0;
+    periph_motor_set_pos((esp_periph_handle_t)&periph, 100, -1);
+    assert(handle.position.in_pos == 100);
+    assert(handle.position.out_pos == 0);
+    assert(gpio_in_calls > 0);
+    assert(gpio_out_calls == 0);
+
+    // Test moving only outer curtain via public API
+    handle.position.in_pos = 100; handle.position.out_pos = 0;
+    gpio_in_calls = gpio_out_calls = 0;
+    periph_motor_set_pos((esp_periph_handle_t)&periph, -1, 100);
     assert(handle.position.in_pos == 100);
     assert(handle.position.out_pos == 100);
     assert(gpio_in_calls == 0);
