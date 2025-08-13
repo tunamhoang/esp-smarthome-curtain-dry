@@ -54,5 +54,25 @@ int main() {
     periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_OPEN);
     assert(gpio_in_calls == 12);
 
+
+    // Test pressing same command stops motor: open then open
+    handle.position.in_pos = 0;
+    gpio_in_calls = 0;
+    handle.last_control = MOTOR_CTRL_NONE;
+    periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_OPEN);
+    periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_OPEN);
+    assert(gpio_in_calls == 8);
+    assert(handle.last_control == MOTOR_IN_CTRL_STOP);
+
+    // Test pressing same command stops motor: close then close
+    handle.position.in_pos = 100;
+    gpio_in_calls = 0;
+    handle.last_control = MOTOR_CTRL_NONE;
+    periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_CLOSE);
+    periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_CLOSE);
+    assert(gpio_in_calls == 8);
+    assert(handle.last_control == MOTOR_IN_CTRL_STOP);
+
+
     return 0;
 }

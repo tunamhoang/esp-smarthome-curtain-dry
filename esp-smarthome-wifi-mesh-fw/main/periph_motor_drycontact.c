@@ -105,6 +105,24 @@ esp_err_t periph_motor_drycontact_control(motor_drycontact_handle_t motor_drycon
     gpio_num_t curtain_out_a_pin = motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.a_pin;
     gpio_num_t curtain_out_b_pin = motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.b_pin;
 
+    bool same = motor_drycontact_handle->last_control == control &&
+                 (control == MOTOR_SINGLE_CTRL_OPEN || control == MOTOR_SINGLE_CTRL_CLOSE ||
+                  control == MOTOR_IN_CTRL_OPEN || control == MOTOR_IN_CTRL_CLOSE ||
+                  control == MOTOR_OUT_CTRL_OPEN || control == MOTOR_OUT_CTRL_CLOSE);
+    if (same) {
+        motor_control_t stop_ctrl = MOTOR_CTRL_NONE;
+        if (control == MOTOR_SINGLE_CTRL_OPEN || control == MOTOR_SINGLE_CTRL_CLOSE) {
+            stop_ctrl = MOTOR_SINGLE_CTRL_STOP;
+        } else if (control == MOTOR_IN_CTRL_OPEN || control == MOTOR_IN_CTRL_CLOSE) {
+            stop_ctrl = MOTOR_IN_CTRL_STOP;
+        } else if (control == MOTOR_OUT_CTRL_OPEN || control == MOTOR_OUT_CTRL_CLOSE) {
+            stop_ctrl = MOTOR_OUT_CTRL_STOP;
+        }
+        if (stop_ctrl != MOTOR_CTRL_NONE) {
+            return periph_motor_drycontact_control(motor_drycontact_handle, stop_ctrl);
+        }
+    }
+
     bool reverse =
         (motor_drycontact_handle->last_control == MOTOR_SINGLE_CTRL_OPEN && control == MOTOR_SINGLE_CTRL_CLOSE) ||
         (motor_drycontact_handle->last_control == MOTOR_SINGLE_CTRL_CLOSE && control == MOTOR_SINGLE_CTRL_OPEN) ||

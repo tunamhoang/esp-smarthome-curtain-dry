@@ -199,14 +199,29 @@ esp_err_t periph_motor_uart_control(motor_uart_handle_t motor_uart_handle, motor
     }
     switch (control) {
         case MOTOR_SINGLE_CTRL_OPEN:
-            LOGI(TAG, "Open curtain!");
-            motor_uart_control(motor_uart_handle->hw.uart.motor_uart_single_conn.uart_num, open_cmd, 6);
-            motor_uart_handle->position.in_pos = 100;
+            if (motor_uart_handle->pre_control != MOTOR_SINGLE_CTRL_OPEN) {
+                LOGI(TAG, "Open curtain!");
+                motor_uart_control(motor_uart_handle->hw.uart.motor_uart_single_conn.uart_num, open_cmd, 6);
+                motor_uart_handle->position.in_pos = 100;
+            } else {
+                LOGI(TAG, "Stop curtain!");
+                motor_uart_control(motor_uart_handle->hw.uart.motor_uart_single_conn.uart_num, stop_cmd, 6);
+                motor_update_pos(motor_uart_handle);
+                control = MOTOR_SINGLE_CTRL_STOP;
+            }
             break;
         case MOTOR_SINGLE_CTRL_CLOSE:
-            LOGI(TAG, "Close curtain!");
-            motor_uart_control(motor_uart_handle->hw.uart.motor_uart_single_conn.uart_num, close_cmd, 6);
-            motor_uart_handle->position.in_pos = 0;
+            if (motor_uart_handle->pre_control != MOTOR_SINGLE_CTRL_CLOSE) {
+                LOGI(TAG, "Close curtain!");
+                motor_uart_control(motor_uart_handle->hw.uart.motor_uart_single_conn.uart_num, close_cmd, 6);
+                motor_uart_handle->position.in_pos = 0;
+            } else {
+                LOGI(TAG, "Stop curtain!");
+                motor_uart_control(motor_uart_handle->hw.uart.motor_uart_single_conn.uart_num, stop_cmd, 6);
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                motor_update_pos(motor_uart_handle);
+                control = MOTOR_SINGLE_CTRL_STOP;
+            }
             break;
         case MOTOR_SINGLE_CTRL_STOP:
             LOGI(TAG, "Stop curtain!");
