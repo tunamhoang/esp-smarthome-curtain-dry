@@ -42,12 +42,13 @@ typedef struct {
 
 static esp_err_t _motor_init(esp_periph_handle_t periph) {
     periph_motor_t *periph_motor = esp_periph_get_data(periph);
+    esp_err_t ret = ESP_OK;
     if (periph_motor->physic == MOTOR_UART) {
-        _motor_uart_init(periph_motor->motor_uart_handle);
+        ret = _motor_uart_init(periph_motor->motor_uart_handle);
     } else if (periph_motor->physic == MOTOR_DRYCONTACT) {
-        _motor_drycontact_init(periph_motor->motor_drycontact_handle);
+        ret = _motor_drycontact_init(periph_motor->motor_drycontact_handle);
     }
-    return ESP_OK;
+    return ret;
 }
 
 static esp_err_t _motor_run(esp_periph_handle_t periph, audio_event_iface_msg_t *msg) { return ESP_OK; }
@@ -94,7 +95,7 @@ motor_pos_t periph_motor_set_pos(esp_periph_handle_t periph_motor, int val_in, i
     motor_pos_t resp_pos = {0, 0};
     VALIDATE_MOTOR(periph_motor, resp_pos);
     periph_motor_t *motor_handle = esp_periph_get_data(periph_motor);
-    if (val_in < 0 || val_in > 100 || val_out < 0 || val_out > 100) {
+    if (val_in < -1 || val_in > 100 || val_out < -1 || val_out > 100) {
         ESP_LOGE(TAG, "Position values error!!!");
         return resp_pos;
     }

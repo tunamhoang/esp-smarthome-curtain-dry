@@ -98,6 +98,13 @@ typedef motor_drycontact_t* motor_drycontact_handle_t;
 
 esp_periph_handle_t periph_motor_init(periph_motor_cfg_t* motor_cfg);
 esp_err_t periph_motor_control(esp_periph_handle_t periph_motor, motor_control_t control);
+
+/**
+ * @brief Set curtain positions.
+ *
+ * Pass -1 for either @p val_in or @p val_out to leave that curtain unchanged.
+ * Other values must be in the range 0-100.
+ */
 motor_pos_t periph_motor_set_pos(esp_periph_handle_t periph_motor, int val_in, int val_out);
 esp_err_t periph_motor_get_pos(esp_periph_handle_t periph_motor, int* val_in, int* val_out);
 

@@ -119,6 +119,23 @@ esp_err_t periph_motor_drycontact_control(motor_drycontact_handle_t motor_drycon
     gpio_num_t curtain_out_a_pin = motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.a_pin;
     gpio_num_t curtain_out_b_pin = motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.b_pin;
 
+    motor_type_t motor_type = motor_drycontact_handle->hw.drycontact.type;
+    bool single_cmd = control == MOTOR_SINGLE_CTRL_OPEN || control == MOTOR_SINGLE_CTRL_CLOSE ||
+                      control == MOTOR_SINGLE_CTRL_STOP;
+    bool double_cmd = control == MOTOR_IN_CTRL_OPEN || control == MOTOR_IN_CTRL_CLOSE ||
+                      control == MOTOR_IN_CTRL_STOP || control == MOTOR_OUT_CTRL_OPEN ||
+                      control == MOTOR_OUT_CTRL_CLOSE || control == MOTOR_OUT_CTRL_STOP;
+    if (control != MOTOR_CTRL_NONE) {
+        if (motor_type == MOTOR_TYPE_SINGLE && !single_cmd) {
+            LOGW(TAG, "Unsupported control %d for single motor", control);
+            return ESP_FAIL;
+        }
+        if (motor_type == MOTOR_TYPE_DOUBLE && !double_cmd) {
+            LOGW(TAG, "Unsupported control %d for double motor", control);
+            return ESP_FAIL;
+        }
+    }
+
     bool same = motor_drycontact_handle->last_control == control &&
                  (control == MOTOR_SINGLE_CTRL_OPEN || control == MOTOR_SINGLE_CTRL_CLOSE ||
                   control == MOTOR_IN_CTRL_OPEN || control == MOTOR_IN_CTRL_CLOSE ||
@@ -162,48 +179,76 @@ esp_err_t periph_motor_drycontact_control(motor_drycontact_handle_t motor_drycon
             vTaskDelay(200 / portTICK_PERIOD_MS);
         }
     }
+    esp_err_t ret = ESP_OK;
     switch (control) {
         case MOTOR_SINGLE_CTRL_OPEN:
             LOGI(TAG, "Open single curtain!");
-            motor_drycontact_control(single_a_pin, single_b_pin, LOW, LOW);
+            ret = motor_drycontact_control(single_a_pin, single_b_pin, LOW, LOW);
+            if (ret != ESP_OK) {
+                return ESP_FAIL;
+            }
             motor_drycontact_handle->position.in_pos = 100;
             break;
         case MOTOR_SINGLE_CTRL_CLOSE:
             LOGI(TAG, "Close single curtain!");
-            motor_drycontact_control(single_a_pin, single_b_pin, LOW, HIGH);
+            ret = motor_drycontact_control(single_a_pin, single_b_pin, LOW, HIGH);
+            if (ret != ESP_OK) {
+                return ESP_FAIL;
+            }
             motor_drycontact_handle->position.in_pos = 0;
             break;
         case MOTOR_SINGLE_CTRL_STOP:
             LOGI(TAG, "Stop single curtain!");
-            motor_drycontact_control(single_a_pin, single_b_pin, HIGH, LOW);
+            ret = motor_drycontact_control(single_a_pin, single_b_pin, HIGH, LOW);
+            if (ret != ESP_OK) {
+                return ESP_FAIL;
+            }
             break;
         case MOTOR_IN_CTRL_OPEN:
             LOGI(TAG, "Open in curtain!");
-            motor_drycontact_control(curtain_in_a_pin, curtain_in_b_pin, LOW, LOW);
+            ret = motor_drycontact_control(curtain_in_a_pin, curtain_in_b_pin, LOW, LOW);
+            if (ret != ESP_OK) {
+                return ESP_FAIL;
+            }
             motor_drycontact_handle->position.in_pos = 100;
             break;
         case MOTOR_IN_CTRL_CLOSE:
             LOGI(TAG, "Close in curtain!");
-            motor_drycontact_control(curtain_in_a_pin, curtain_in_b_pin, HIGH, LOW);
+            ret = motor_drycontact_control(curtain_in_a_pin, curtain_in_b_pin, HIGH, LOW);
+            if (ret != ESP_OK) {
+                return ESP_FAIL;
+            }
             motor_drycontact_handle->position.in_pos = 0;
             break;
         case MOTOR_IN_CTRL_STOP:
             LOGI(TAG, "Stop in curtain!");
-            motor_drycontact_control(curtain_in_a_pin, curtain_in_b_pin, LOW, HIGH);
+            ret = motor_drycontact_control(curtain_in_a_pin, curtain_in_b_pin, LOW, HIGH);
+            if (ret != ESP_OK) {
+                return ESP_FAIL;
+            }
             break;
         case MOTOR_OUT_CTRL_OPEN:
             LOGI(TAG, "Open out curtain!");
-            motor_drycontact_control(curtain_out_a_pin, curtain_out_b_pin, LOW, HIGH);
+            ret = motor_drycontact_control(curtain_out_a_pin, curtain_out_b_pin, LOW, HIGH);
+            if (ret != ESP_OK) {
+                return ESP_FAIL;
+            }
             motor_drycontact_handle->position.out_pos = 100;
             break;
         case MOTOR_OUT_CTRL_CLOSE:
             LOGI(TAG, "Close out curtain!");
-            motor_drycontact_control(curtain_out_a_pin, curtain_out_b_pin, HIGH, LOW);
+            ret = motor_drycontact_control(curtain_out_a_pin, curtain_out_b_pin, HIGH, LOW);
+            if (ret != ESP_OK) {
+                return ESP_FAIL;
+            }
             motor_drycontact_handle->position.out_pos = 0;
             break;
         case MOTOR_OUT_CTRL_STOP:
             LOGI(TAG, "Stop out curtain!");
-            motor_drycontact_control(curtain_out_a_pin, curtain_out_b_pin, LOW, LOW);
+            ret = motor_drycontact_control(curtain_out_a_pin, curtain_out_b_pin, LOW, LOW);
+            if (ret != ESP_OK) {
+                return ESP_FAIL;
+            }
             break;
         default:
             break;
