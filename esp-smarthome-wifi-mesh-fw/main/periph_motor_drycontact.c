@@ -24,7 +24,7 @@ static void motor_control_timeout_cb(TimerHandle_t timer) {
     }
 }
 
-#define TIMEOUT_CONTROL_MS 5 * 1000
+#define TIMEOUT_CONTROL_MS 10 * 1000
 #define HIGH               1
 #define LOW                0
 
