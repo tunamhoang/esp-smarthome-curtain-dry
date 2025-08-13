@@ -54,6 +54,7 @@ int main() {
     periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_OPEN);
     assert(gpio_in_calls == 12);
 
+
     // Test pressing same command stops motor: open then open
     handle.position.in_pos = 0;
     gpio_in_calls = 0;
@@ -71,6 +72,7 @@ int main() {
     periph_motor_drycontact_control(&handle, MOTOR_IN_CTRL_CLOSE);
     assert(gpio_in_calls == 8);
     assert(handle.last_control == MOTOR_IN_CTRL_STOP);
+
 
     return 0;
 }
