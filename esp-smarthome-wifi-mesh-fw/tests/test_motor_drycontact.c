@@ -8,6 +8,10 @@ int gpio_single_calls = 0;
 
 int gpio_config(const gpio_config_t *cfg) { return 0; }
 int gpio_set_level(gpio_num_t pin, int level) {
+    if (gpio_fail_next) {
+        gpio_fail_next = 0;
+        return ESP_FAIL;
+    }
     if (pin == 1 || pin == 2) gpio_in_calls++;
     if (pin == 3 || pin == 4) gpio_out_calls++;
     if (pin == 5 || pin == 6) gpio_single_calls++;
@@ -151,6 +155,21 @@ int main() {
     periph_motor_drycontact_control(&single, MOTOR_SINGLE_CTRL_CLOSE);
     periph_motor_drycontact_control(&single, MOTOR_SINGLE_CTRL_OPEN);
     assert(gpio_single_calls == 12);
+
+    // Test unsupported command for double motor
+    handle.last_control = MOTOR_CTRL_NONE;
+    assert(periph_motor_drycontact_control(&handle, MOTOR_SINGLE_CTRL_OPEN) == ESP_FAIL);
+    assert(handle.last_control == MOTOR_CTRL_NONE);
+
+    // Test unsupported command for single motor
+    motor_drycontact_t single = (motor_drycontact_t){0};
+    single.hw.drycontact.type = MOTOR_TYPE_SINGLE;
+    single.hw.drycontact.motor_drycontact_single_conn.a_pin = 5;
+    single.hw.drycontact.motor_drycontact_single_conn.b_pin = 6;
+    single.last_control = MOTOR_CTRL_NONE;
+    assert(periph_motor_drycontact_control(&single, MOTOR_IN_CTRL_OPEN) == ESP_FAIL);
+    assert(single.last_control == MOTOR_CTRL_NONE);
+
 
     return 0;
 }
