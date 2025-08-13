@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "app_utility.h"
 #include "driver/gpio.h"
@@ -80,6 +81,7 @@ motor_drycontact_handle_t periph_motor_drycontact_init(motor_hw_t *motor_cfg) {
         }
     }
     motor_drycontact_handle->hw.drycontact.type = motor_cfg->drycontact.type;
+    motor_drycontact_handle->last_control = MOTOR_CTRL_NONE;
     return motor_drycontact_handle;
 _motor_drycontact_init_fail:
     free(motor_drycontact_handle);
@@ -102,6 +104,50 @@ esp_err_t periph_motor_drycontact_control(motor_drycontact_handle_t motor_drycon
     gpio_num_t curtain_in_b_pin = motor_drycontact_handle->hw.drycontact.motor_drycontact_in_conn.b_pin;
     gpio_num_t curtain_out_a_pin = motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.a_pin;
     gpio_num_t curtain_out_b_pin = motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.b_pin;
+
+    bool same = motor_drycontact_handle->last_control == control &&
+                 (control == MOTOR_SINGLE_CTRL_OPEN || control == MOTOR_SINGLE_CTRL_CLOSE ||
+                  control == MOTOR_IN_CTRL_OPEN || control == MOTOR_IN_CTRL_CLOSE ||
+                  control == MOTOR_OUT_CTRL_OPEN || control == MOTOR_OUT_CTRL_CLOSE);
+    if (same) {
+        motor_control_t stop_ctrl = MOTOR_CTRL_NONE;
+        if (control == MOTOR_SINGLE_CTRL_OPEN || control == MOTOR_SINGLE_CTRL_CLOSE) {
+            stop_ctrl = MOTOR_SINGLE_CTRL_STOP;
+        } else if (control == MOTOR_IN_CTRL_OPEN || control == MOTOR_IN_CTRL_CLOSE) {
+            stop_ctrl = MOTOR_IN_CTRL_STOP;
+        } else if (control == MOTOR_OUT_CTRL_OPEN || control == MOTOR_OUT_CTRL_CLOSE) {
+            stop_ctrl = MOTOR_OUT_CTRL_STOP;
+        }
+        if (stop_ctrl != MOTOR_CTRL_NONE) {
+            return periph_motor_drycontact_control(motor_drycontact_handle, stop_ctrl);
+        }
+    }
+
+    bool reverse =
+        (motor_drycontact_handle->last_control == MOTOR_SINGLE_CTRL_OPEN && control == MOTOR_SINGLE_CTRL_CLOSE) ||
+        (motor_drycontact_handle->last_control == MOTOR_SINGLE_CTRL_CLOSE && control == MOTOR_SINGLE_CTRL_OPEN) ||
+        (motor_drycontact_handle->last_control == MOTOR_IN_CTRL_OPEN && control == MOTOR_IN_CTRL_CLOSE) ||
+        (motor_drycontact_handle->last_control == MOTOR_IN_CTRL_CLOSE && control == MOTOR_IN_CTRL_OPEN) ||
+        (motor_drycontact_handle->last_control == MOTOR_OUT_CTRL_OPEN && control == MOTOR_OUT_CTRL_CLOSE) ||
+        (motor_drycontact_handle->last_control == MOTOR_OUT_CTRL_CLOSE && control == MOTOR_OUT_CTRL_OPEN);
+
+    if (reverse) {
+        motor_control_t stop_ctrl = MOTOR_CTRL_NONE;
+        if (motor_drycontact_handle->last_control == MOTOR_SINGLE_CTRL_OPEN ||
+            motor_drycontact_handle->last_control == MOTOR_SINGLE_CTRL_CLOSE) {
+            stop_ctrl = MOTOR_SINGLE_CTRL_STOP;
+        } else if (motor_drycontact_handle->last_control == MOTOR_IN_CTRL_OPEN ||
+                   motor_drycontact_handle->last_control == MOTOR_IN_CTRL_CLOSE) {
+            stop_ctrl = MOTOR_IN_CTRL_STOP;
+        } else if (motor_drycontact_handle->last_control == MOTOR_OUT_CTRL_OPEN ||
+                   motor_drycontact_handle->last_control == MOTOR_OUT_CTRL_CLOSE) {
+            stop_ctrl = MOTOR_OUT_CTRL_STOP;
+        }
+        if (stop_ctrl != MOTOR_CTRL_NONE) {
+            periph_motor_drycontact_control(motor_drycontact_handle, stop_ctrl);
+            vTaskDelay(200 / portTICK_PERIOD_MS);
+        }
+    }
     switch (control) {
         case MOTOR_SINGLE_CTRL_OPEN:
             LOGI(TAG, "Open single curtain!");
@@ -148,6 +194,7 @@ esp_err_t periph_motor_drycontact_control(motor_drycontact_handle_t motor_drycon
         default:
             break;
     }
+    motor_drycontact_handle->last_control = control;
     return ESP_OK;
 }
 
