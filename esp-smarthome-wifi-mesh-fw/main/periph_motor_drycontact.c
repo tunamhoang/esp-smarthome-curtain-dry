@@ -11,10 +11,18 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "freertos/timers.h"
 #include "periph_motor.h"
 #include "sdkconfig.h"
 
 static const char *TAG = "MOTOR_DRYCONTACT";
+
+static void motor_control_timeout_cb(TimerHandle_t timer) {
+    motor_drycontact_handle_t handle = (motor_drycontact_handle_t)pvTimerGetTimerID(timer);
+    if (handle != NULL) {
+        handle->last_control = MOTOR_CTRL_NONE;
+    }
+}
 
 #define TIMEOUT_CONTROL_MS 5 * 1000
 #define HIGH               1
@@ -53,6 +61,12 @@ esp_err_t _motor_drycontact_init(motor_drycontact_handle_t motor_drycontact_hand
         VALIDATE_CONTROL(gpio_set_level(motor_drycontact_handle->hw.drycontact.motor_drycontact_in_conn.b_pin, HIGH));
         VALIDATE_CONTROL(gpio_set_level(motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.a_pin, HIGH));
         VALIDATE_CONTROL(gpio_set_level(motor_drycontact_handle->hw.drycontact.motor_drycontact_out_conn.b_pin, HIGH));
+    }
+    motor_drycontact_handle->control_timer =
+        xTimerCreate("motor_ctrl_timeout", TIMEOUT_CONTROL_MS / portTICK_PERIOD_MS, pdFALSE, motor_drycontact_handle,
+                     motor_control_timeout_cb);
+    if (motor_drycontact_handle->control_timer == NULL) {
+        return ESP_FAIL;
     }
     return ESP_OK;
 }
@@ -195,6 +209,12 @@ esp_err_t periph_motor_drycontact_control(motor_drycontact_handle_t motor_drycon
             break;
     }
     motor_drycontact_handle->last_control = control;
+    bool non_stop = (control == MOTOR_SINGLE_CTRL_OPEN || control == MOTOR_SINGLE_CTRL_CLOSE ||
+                     control == MOTOR_IN_CTRL_OPEN || control == MOTOR_IN_CTRL_CLOSE ||
+                     control == MOTOR_OUT_CTRL_OPEN || control == MOTOR_OUT_CTRL_CLOSE);
+    if (non_stop && motor_drycontact_handle->control_timer != NULL) {
+        xTimerReset(motor_drycontact_handle->control_timer, 0);
+    }
     return ESP_OK;
 }
 
@@ -237,5 +257,18 @@ esp_err_t periph_motor_drycontact_get_pos(motor_drycontact_handle_t motor_drycon
     if (val_out != NULL) {
         *val_out = motor_drycontact_handle->position.out_pos;
     }
+    return ESP_OK;
+}
+
+esp_err_t periph_motor_drycontact_destroy(motor_drycontact_handle_t motor_drycontact_handle) {
+    if (motor_drycontact_handle == NULL) {
+        return ESP_FAIL;
+    }
+    if (motor_drycontact_handle->control_timer != NULL) {
+        xTimerStop(motor_drycontact_handle->control_timer, 0);
+        xTimerDelete(motor_drycontact_handle->control_timer, 0);
+        motor_drycontact_handle->control_timer = NULL;
+    }
+    free(motor_drycontact_handle);
     return ESP_OK;
 }
