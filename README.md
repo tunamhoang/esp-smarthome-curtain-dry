@@ -1,53 +1,55 @@
-source ~/esp-idf/export.sh
-//Cách đóng gói firmware để gửi cho đối tác
-//Build firmware
+# Hướng dẫn build và đóng gói firmware rèm
 
-//Vào thư mục dự án:
+Tài liệu này mô tả các bước chuẩn bị môi trường, build mã nguồn và đóng gói bộ firmware để gửi cho đối tác hoặc tự nạp vào thiết bị.
 
-cd esp-smarthome-wifi-mesh-fw
-//Nếu chưa build, chạy:
+## 1. Chuẩn bị môi trường ESP‑IDF
 
+1. Di chuyển vào thư mục dự án con:
+   ```bash
+   cd esp-smarthome-wifi-mesh-fw
+   ```
+2. Cài đặt hoặc cập nhật ESP‑IDF:
+   ```bash
+   ./setup_env.sh
+   ```
+3. Nạp biến môi trường (thực hiện mỗi khi mở terminal mới):
+   ```bash
+   source ~/esp-idf/export.sh   # hoặc ". ./setup_env.sh" nếu script đã thiết lập IDF_PATH
+   ```
+
+## 2. Build firmware
+
+```bash
 ./build.sh
-//(Sau bước này các file *.bin mã hóa sẽ nằm trong esp-flash-encrypted-and-secure-boot/build/.)
+```
+Sau bước này các file *.bin đã được mã hóa sẽ nằm trong `esp-flash-encrypted-and-secure-boot/build/`.
 
-//Thu thập file cần gửi
+## 3. Thu gom và đóng gói
 
-//Chạy script thu gom:
+1. Thu gom file cần gửi:
+   ```bash
+   ./produce.sh
+   ```
+   Script sẽ copy các file đã mã hóa (`app-encrypted.bin`, `bootloader-reflash-digest-encrypted.bin`, `ota_data_initial-encrypted.bin`, `partitions-encrypted.bin`) cùng script `flash_encrypted.sh` vào thư mục `produce/firmware/`.
 
-./produce.sh
-//Script sẽ copy các file đã mã hóa (app-encrypted.bin, bootloader-reflash-digest-encrypted.bin, ota_data_initial-encrypted.bin, partitions-encrypted.bin) và script flash_encrypted.sh vào thư mục produce/firmware/.
+2. Tạo gói nén để gửi cho đối tác:
+   ```bash
+   cd produce
+   zip -r firmware-package.zip firmware
+   ```
+   File `firmware-package.zip` chứa thư mục `firmware` cùng các file *.bin và script nạp.
 
-//Đóng gói
+## 4. Hướng dẫn đối tác nạp firmware
 
-//Tạo file nén để gửi cho đối tác:
+1. Giải nén `firmware-package.zip` và kết nối thiết bị với cổng USB.
+2. Trong thư mục `firmware` vừa giải nén, chạy:
+   ```bash
+   chmod +x flash_encrypted.sh
+   ./flash_encrypted.sh
+   ```
+   Script sẽ tự tìm cổng serial (mặc định `/dev/ttyUSB0` trên Linux) và sử dụng `esptool.py` để ghi các file nhị phân vào flash.
 
-cd produce
-zip -r firmware-package.zip firmware
-//Gửi file firmware-package.zip cho đối tác. Khi giải nén, họ sẽ nhận được thư mục firmware chứa các file *.bin và flash_encrypted.sh.
+## 5. Ghi chú
 
-//Hướng dẫn đối tác nạp
-
-//Kết nối thiết bị với cổng USB.
-
-//Trong thư mục firmware vừa giải nén, chạy:
-
-chmod +x flash_encrypted.sh
-./flash_encrypted.sh
-//Script sẽ tự tìm cổng serial (mặc định /dev/ttyUSB0 trên Linux) và sử dụng esptool.py để ghi các file nhị phân vào flash.
-
-
-Nếu chưa có ESP-IDF
-
-Install or update ESP‑IDF
-If you haven’t already:
-
-cd esp-smarthome-curtain-dry/esp-smarthome-wifi-mesh-fw
-./setup_env.sh
-Load the ESP‑IDF environment (each new terminal session):
-
-source ~/esp-idf/export.sh   # or . ./setup_env.sh if it sets IDF_PATH
-This adds idf.py and other tools to your PATH.
-
-Build again:
-
-./build.sh
+- Các bước trên yêu cầu máy tính đã cài đặt đầy đủ driver USB‑to‑Serial.
+- Nếu cần build lại ở máy khác, lặp lại bước chuẩn bị môi trường trước khi chạy `build.sh`.
