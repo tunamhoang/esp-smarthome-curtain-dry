@@ -71,6 +71,7 @@ typedef struct {
     bool                    is_config_mode;
     monitor_blink_pattern_t manual_blink;
     motor_control_t         motor_ctrl_cmd[MAX_RELAY_TOUCH_PAD_NUM];
+    bool                    motor_btn_state[MAX_RELAY_TOUCH_PAD_NUM];
     long long               last_tapped;
     long long               last_double_tapped;
     long long               last_scene_tapped;
@@ -113,6 +114,37 @@ static void _reset_gpio(hw_io_map_t *_touch_io_map) {
         gpio_reset_pin(_touch_io_map->led_on_gpio);
         gpio_set_direction(_touch_io_map->led_on_gpio, GPIO_MODE_OUTPUT);
         gpio_set_level(_touch_io_map->led_on_gpio, _touch_io_map->state);
+    }
+}
+
+static motor_control_t _get_stop_command(motor_control_t ctrl) {
+    switch (ctrl) {
+        case MOTOR_SINGLE_CTRL_OPEN:
+        case MOTOR_SINGLE_CTRL_CLOSE:
+            return MOTOR_SINGLE_CTRL_STOP;
+        case MOTOR_IN_CTRL_OPEN:
+        case MOTOR_IN_CTRL_CLOSE:
+            return MOTOR_IN_CTRL_STOP;
+        case MOTOR_OUT_CTRL_OPEN:
+        case MOTOR_OUT_CTRL_CLOSE:
+            return MOTOR_OUT_CTRL_STOP;
+        default:
+            return MOTOR_CTRL_NONE;
+    }
+}
+
+static int _get_opposite_index(int idx) {
+    switch (idx) {
+        case 0:
+            return 3;
+        case 3:
+            return 0;
+        case 1:
+            return 2;
+        case 2:
+            return 1;
+        default:
+            return -1;
     }
 }
 
@@ -807,6 +839,7 @@ esp_periph_handle_t periph_monitor_init(periph_monitor_cfg_t *monitor_cfg) {
     periph_monitor->blink_enabled = true;
     periph_monitor->is_config_mode = false;
     memcpy(periph_monitor->motor_ctrl_cmd, monitor_cfg->motor_ctrl_cmd, MAX_RELAY_TOUCH_PAD_NUM * sizeof(motor_control_t));
+    memset(periph_monitor->motor_btn_state, 0, sizeof(periph_monitor->motor_btn_state));
     esp_periph_set_data(periph, periph_monitor);
     esp_periph_set_function(periph, _monitor_init, _monitor_run, _monitor_destroy);
     g_periph_monitor = periph;
@@ -1258,7 +1291,21 @@ esp_err_t periph_monitor_toggle(esp_periph_handle_t periph, int touch_gpio) {
             periph_monitor_set_led_state(periph, i, _touch_io_map[i].state ^ 1, 200);
             vTaskDelay(300 / portTICK_RATE_MS);
             periph_monitor_set_led_state(periph, i, _touch_io_map[i].state ^ 1, 200);
-            periph_motor_control(periph_monitor->motor_periph, periph_monitor->motor_ctrl_cmd[i]);
+            motor_control_t cmd = periph_monitor->motor_ctrl_cmd[i];
+            if (periph_monitor->motor_btn_state[i]) {
+                motor_control_t stop_cmd = _get_stop_command(cmd);
+                if (stop_cmd != MOTOR_CTRL_NONE) {
+                    periph_motor_control(periph_monitor->motor_periph, stop_cmd);
+                }
+                periph_monitor->motor_btn_state[i] = false;
+            } else {
+                periph_motor_control(periph_monitor->motor_periph, cmd);
+                periph_monitor->motor_btn_state[i] = true;
+                int opp = _get_opposite_index(i);
+                if (opp >= 0) {
+                    periph_monitor->motor_btn_state[opp] = false;
+                }
+            }
             int in_pos = 0;
             int out_pos = 0;
             periph_motor_get_pos(periph_monitor->motor_periph, &in_pos, &out_pos);
