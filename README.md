@@ -53,3 +53,7 @@ Sau bước này các file *.bin đã được mã hóa sẽ nằm trong `esp-fl
 
 - Các bước trên yêu cầu máy tính đã cài đặt đầy đủ driver USB‑to‑Serial.
 - Nếu cần build lại ở máy khác, lặp lại bước chuẩn bị môi trường trước khi chạy `build.sh`.
+- Att USB port sang wsl và phân quyền user:
+leeman@LAPTOP-KC8I5S35:~/esp-curtain-mesh-dry-fw$ sudo chgrp dialout /dev/ttyUSB0
+leeman@LAPTOP-KC8I5S35:~/esp-curtain-mesh-dry-fw$ ls -l /dev/ttyUSB0
+crw-rw---- 1 root dialout 188, 0 Aug 23 10:13 /dev/ttyUSB0
